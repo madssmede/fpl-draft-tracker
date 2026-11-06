@@ -105,6 +105,49 @@ export async function matchesView(gwParam) {
 }
 
 // ---------------------------------------------------------------------------
+// Runder: alle afsluttede runder og deres resultater
+// ---------------------------------------------------------------------------
+
+export async function roundsView() {
+  const [details, idx] = await Promise.all([api.details(), playerIndex()]);
+  const entries = calc.entryMap(details);
+  const rounds = calc.pastRounds(details);
+  if (!rounds.length) return `<div class="card">Resultaterne dukker op efter første runde.</div>`;
+
+  const resultRow = (m, event) => {
+    const a = entries.get(m.league_entry_1);
+    const b = entries.get(m.league_entry_2);
+    if (!a || !b) return ""; // fri runde
+    const sa = m.league_entry_1_points;
+    const sb = m.league_entry_2_points;
+    return `
+      <a class="result-row" href="#/kamp/${event}/${a.id}-${b.id}">
+        <span class="result-team home ${sb > sa ? "lost" : ""}"><strong>${esc(a.entry_name)}</strong>${crest(a, "sm")}</span>
+        <span class="result-score">${sa}<i>–</i>${sb}</span>
+        <span class="result-team ${sa > sb ? "lost" : ""}">${crest(b, "sm")}<strong>${esc(b.entry_name)}</strong></span>
+      </a>`;
+  };
+
+  const cards = rounds
+    .map((r) => {
+      const started = idx.events.get(r.event)?.deadline_time;
+      const topNames = r.topIds.map((id) => esc(entries.get(id)?.entry_name ?? "?")).join(" og ");
+      return `
+        <section class="card round-card">
+          <div class="round-head">
+            <h2>Runde ${r.event}</h2>
+            ${started ? `<span class="muted">${fmtShortDate(started)}</span>` : ""}
+          </div>
+          <div>${r.matches.map((m) => resultRow(m, r.event)).join("")}</div>
+          <p class="round-top muted">Højeste score: <strong>${r.topPoints}</strong> · ${topNames}</p>
+        </section>`;
+    })
+    .join("");
+
+  return `<div class="stack">${cards}</div>`;
+}
+
+// ---------------------------------------------------------------------------
 // Kampside med opstillinger
 // ---------------------------------------------------------------------------
 

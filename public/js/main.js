@@ -11,6 +11,7 @@ const REFRESH_MS = 60_000;
 const routes = {
   kampe: (gw) => views.matchesView(gw),
   kamp: (gw, pair) => views.matchView(gw, pair),
+  runder: () => views.roundsView(),
   tabel: () => views.tableView(),
   statistik: () => views.statsView(),
   aktivitet: () => views.activityView(),

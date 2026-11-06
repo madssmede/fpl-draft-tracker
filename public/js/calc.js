@@ -106,6 +106,22 @@ export function scoresByEvent(details) {
 }
 
 /**
+ * Afsluttede runder med den nyeste først: rundens kampe og højeste score.
+ * topIds er en liste, fordi flere hold kan dele rundens højeste score.
+ */
+export function pastRounds(details) {
+  const scores = scoresByEvent(details);
+  return [...scores.keys()]
+    .filter((event) => matchesForEvent(details, event).every((m) => m.finished))
+    .sort((a, b) => b - a)
+    .map((event) => {
+      const topPoints = Math.max(...scores.get(event).values());
+      const topIds = [...scores.get(event)].filter(([, p]) => p === topPoints).map(([id]) => id);
+      return { event, matches: matchesForEvent(details, event), topPoints, topIds };
+    });
+}
+
+/**
  * "Heldtabellen": hvad var resultatet, hvis hvert hold havde mødt alle de
  * andre hver eneste runde? Viser, hvem der har haft medvind og modvind.
  */

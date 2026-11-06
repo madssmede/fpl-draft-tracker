@@ -35,6 +35,28 @@ test("rekorder", () => {
   assert.equal(rec.lowest.points, 14);
 });
 
+test("tidligere runder: nyeste først og kun afsluttede runder", () => {
+  const rounds = calc.pastRounds(details);
+  assert.deepEqual(rounds.map((r) => r.event), [9, 8, 7, 6, 5, 4, 3, 2, 1]);
+  assert.ok(rounds.every((r) => r.matches.length === 3));
+  assert.equal(Math.max(...rounds.map((r) => r.topPoints)), 71); // sæsonens højeste score
+
+  // En runde, hvor én kamp ikke er færdig, må ikke være med.
+  const halfDone = { ...details, matches: details.matches.map((m, i) => (m.event === 9 && i % 2 ? { ...m, finished: false } : m)) };
+  const finishedFlags = calc.matchesForEvent(halfDone, 9).map((m) => m.finished);
+  assert.ok(finishedFlags.includes(false) && finishedFlags.includes(true));
+  assert.equal(calc.pastRounds(halfDone)[0].event, 8);
+});
+
+test("tidligere runder: delt højeste score giver flere hold", () => {
+  const entries = details.league_entries.slice(0, 4);
+  const match = (a, b, pa, pb) => ({ event: 1, finished: true, league_entry_1: a.id, league_entry_2: b.id, league_entry_1_points: pa, league_entry_2_points: pb });
+  const tied = { league_entries: entries, matches: [match(entries[0], entries[1], 50, 40), match(entries[2], entries[3], 30, 50)] };
+  const [round] = calc.pastRounds(tied);
+  assert.equal(round.topPoints, 50);
+  assert.deepEqual(round.topIds, [entries[0].id, entries[3].id]);
+});
+
 // --- Up the Spurs, runde 9 (rigtige data) ---------------------------------
 const P = (id, web_name, element_type, team) => [id, { id, web_name, element_type, team, code: 0 }];
 const players = new Map([

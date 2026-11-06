@@ -28,7 +28,7 @@ Miljøvariabler: `PORT` (sættes af Render), `LEAGUE_ID` (standard 67616), `MOCK
 | `server.js` | Serverer `public/` og proxyer whitelistede FPL-endpoints under `/api/fpl/...` med cache i hukommelsen (60–600 s). Viser gamle data, hvis FPL fejler. `/healthz` til oppetidstjek. |
 | `public/index.html` | Skelet: top, faner, `<dialog>` til spillerdetaljer |
 | `public/styles.css` | Alt design. Mørkt tema som standard, lyst via `prefers-color-scheme`. Farver som CSS-variabler i `:root`. |
-| `public/js/main.js` | Hash-router (`#/kampe/10`, `#/kamp/10/<id>-<id>`, `#/tabel`, `#/statistik`, `#/aktivitet`), auto-opdatering hvert 60. sekund mens runden er live |
+| `public/js/main.js` | Hash-router (`#/kampe/10`, `#/kamp/10/<id>-<id>`, `#/runder`, `#/tabel`, `#/statistik`, `#/aktivitet`), auto-opdatering hvert 60. sekund mens runden er live |
 | `public/js/views.js` | Én funktion pr. side, returnerer HTML-strenge |
 | `public/js/calc.js` | Rene beregninger uden DOM eller fetch: tabel, heldtabel, rekorder, livepoint, automatiske udskiftninger |
 | `public/js/api.js` | Kald til `/api/fpl/...` med memo, `playerIndex()` med opslagstabeller |
