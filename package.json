@@ -1,0 +1,14 @@
+{
+  "name": "fpl-draft-tracker",
+  "version": "1.0.0",
+  "description": "FotMob-agtig side til vores FPL Draft-liga",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

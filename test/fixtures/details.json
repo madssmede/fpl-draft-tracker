@@ -1,0 +1,423 @@
+{
+ "league": {
+  "id": 67616,
+  "name": "SPORT 24 INDKØB",
+  "scoring": "h"
+ },
+ "league_entries": [
+  {
+   "entry_id": 356337,
+   "entry_name": "Kjøge United",
+   "id": 360305,
+   "player_first_name": "Jacob",
+   "player_last_name": "Kjøge",
+   "short_name": "JK"
+  },
+  {
+   "entry_id": 356384,
+   "entry_name": "Davies FC",
+   "id": 360351,
+   "player_first_name": "Emil",
+   "player_last_name": "Davies",
+   "short_name": "ED"
+  },
+  {
+   "entry_id": 356446,
+   "entry_name": "Up the Spurs",
+   "id": 360413,
+   "player_first_name": "Mads",
+   "player_last_name": "Smedegaard",
+   "short_name": "MS"
+  },
+  {
+   "entry_id": 356476,
+   "entry_name": "Schillefars Krigere",
+   "id": 360443,
+   "player_first_name": "Rasmus",
+   "player_last_name": "Schilling",
+   "short_name": "RS"
+  },
+  {
+   "entry_id": 364265,
+   "entry_name": "The Gunners",
+   "id": 368340,
+   "player_first_name": "Benjamin",
+   "player_last_name": "Blichfeldt",
+   "short_name": "BB"
+  },
+  {
+   "entry_id": 364453,
+   "entry_name": "Sørgelige rester",
+   "id": 368536,
+   "player_first_name": "Lasse",
+   "player_last_name": "Petersen",
+   "short_name": "LP"
+  }
+ ],
+ "matches": [
+  {
+   "event": 1,
+   "finished": true,
+   "started": true,
+   "league_entry_1": 368340,
+   "league_entry_1_points": 46,
+   "league_entry_2": 360305,
+   "league_entry_2_points": 31,
+   "winning_league_entry": null,
+   "winning_method": null
+  },
+  {
+   "event": 1,
+   "finished": true,
+   "started": true,
+   "league_entry_1": 368536,
+   "league_entry_1_points": 47,
+   "league_entry_2": 360443,
+   "league_entry_2_points": 26,
+   "winning_league_entry": null,
+   "winning_method": null
+  },
+  {
+   "event": 1,
+   "finished": true,
+   "started": true,
+   "league_entry_1": 360351,
+   "league_entry_1_points": 40,
+   "league_entry_2": 360413,
+   "league_entry_2_points": 56,
+   "winning_league_entry": null,
+   "winning_method": null
+  },
+  {
+   "event": 2,
+   "finished": true,
+   "started": true,
+   "league_entry_1": 360305,
+   "league_entry_1_points": 63,
+   "league_entry_2": 360351,
+   "league_entry_2_points": 38,
+   "winning_league_entry": null,
+   "winning_method": null
+  },
+  {
+   "event": 2,
+   "finished": true,
+   "started": true,
+   "league_entry_1": 360413,
+   "league_entry_1_points": 66,
+   "league_entry_2": 368536,
+   "league_entry_2_points": 64,
+   "winning_league_entry": null,
+   "winning_method": null
+  },
+  {
+   "event": 2,
+   "finished": true,
+   "started": true,
+   "league_entry_1": 360443,
+   "league_entry_1_points": 43,
+   "league_entry_2": 368340,
+   "league_entry_2_points": 41,
+   "winning_league_entry": null,
+   "winning_method": null
+  },
+  {
+   "event": 3,
+   "finished": true,
+   "started": true,
+   "league_entry_1": 368536,
+   "league_entry_1_points": 39,
+   "league_entry_2": 360305,
+   "league_entry_2_points": 36,
+   "winning_league_entry": null,
+   "winning_method": null
+  },
+  {
+   "event": 3,
+   "finished": true,
+   "started": true,
+   "league_entry_1": 360351,
+   "league_entry_1_points": 44,
+   "league_entry_2": 368340,
+   "league_entry_2_points": 38,
+   "winning_league_entry": null,
+   "winning_method": null
+  },
+  {
+   "event": 3,
+   "finished": true,
+   "started": true,
+   "league_entry_1": 360413,
+   "league_entry_1_points": 30,
+   "league_entry_2": 360443,
+   "league_entry_2_points": 44,
+   "winning_league_entry": null,
+   "winning_method": null
+  },
+  {
+   "event": 4,
+   "finished": true,
+   "started": true,
+   "league_entry_1": 360305,
+   "league_entry_1_points": 70,
+   "league_entry_2": 360413,
+   "league_entry_2_points": 71,
+   "winning_league_entry": null,
+   "winning_method": null
+  },
+  {
+   "event": 4,
+   "finished": true,
+   "started": true,
+   "league_entry_1": 360443,
+   "league_entry_1_points": 29,
+   "league_entry_2": 360351,
+   "league_entry_2_points": 41,
+   "winning_league_entry": null,
+   "winning_method": null
+  },
+  {
+   "event": 4,
+   "finished": true,
+   "started": true,
+   "league_entry_1": 368340,
+   "league_entry_1_points": 53,
+   "league_entry_2": 368536,
+   "league_entry_2_points": 57,
+   "winning_league_entry": null,
+   "winning_method": null
+  },
+  {
+   "event": 5,
+   "finished": true,
+   "started": true,
+   "league_entry_1": 360443,
+   "league_entry_1_points": 52,
+   "league_entry_2": 360305,
+   "league_entry_2_points": 68,
+   "winning_league_entry": null,
+   "winning_method": null
+  },
+  {
+   "event": 5,
+   "finished": true,
+   "started": true,
+   "league_entry_1": 368340,
+   "league_entry_1_points": 35,
+   "league_entry_2": 360413,
+   "league_entry_2_points": 67,
+   "winning_league_entry": null,
+   "winning_method": null
+  },
+  {
+   "event": 5,
+   "finished": true,
+   "started": true,
+   "league_entry_1": 368536,
+   "league_entry_1_points": 34,
+   "league_entry_2": 360351,
+   "league_entry_2_points": 38,
+   "winning_league_entry": null,
+   "winning_method": null
+  },
+  {
+   "event": 6,
+   "finished": true,
+   "started": true,
+   "league_entry_1": 368340,
+   "league_entry_1_points": 55,
+   "league_entry_2": 360305,
+   "league_entry_2_points": 61,
+   "winning_league_entry": null,
+   "winning_method": null
+  },
+  {
+   "event": 6,
+   "finished": true,
+   "started": true,
+   "league_entry_1": 368536,
+   "league_entry_1_points": 14,
+   "league_entry_2": 360443,
+   "league_entry_2_points": 43,
+   "winning_league_entry": null,
+   "winning_method": null
+  },
+  {
+   "event": 6,
+   "finished": true,
+   "started": true,
+   "league_entry_1": 360351,
+   "league_entry_1_points": 41,
+   "league_entry_2": 360413,
+   "league_entry_2_points": 66,
+   "winning_league_entry": null,
+   "winning_method": null
+  },
+  {
+   "event": 7,
+   "finished": true,
+   "started": true,
+   "league_entry_1": 360305,
+   "league_entry_1_points": 69,
+   "league_entry_2": 360351,
+   "league_entry_2_points": 40,
+   "winning_league_entry": null,
+   "winning_method": null
+  },
+  {
+   "event": 7,
+   "finished": true,
+   "started": true,
+   "league_entry_1": 360413,
+   "league_entry_1_points": 41,
+   "league_entry_2": 368536,
+   "league_entry_2_points": 43,
+   "winning_league_entry": null,
+   "winning_method": null
+  },
+  {
+   "event": 7,
+   "finished": true,
+   "started": true,
+   "league_entry_1": 360443,
+   "league_entry_1_points": 38,
+   "league_entry_2": 368340,
+   "league_entry_2_points": 56,
+   "winning_league_entry": null,
+   "winning_method": null
+  },
+  {
+   "event": 8,
+   "finished": true,
+   "started": true,
+   "league_entry_1": 368536,
+   "league_entry_1_points": 39,
+   "league_entry_2": 360305,
+   "league_entry_2_points": 47,
+   "winning_league_entry": null,
+   "winning_method": null
+  },
+  {
+   "event": 8,
+   "finished": true,
+   "started": true,
+   "league_entry_1": 360351,
+   "league_entry_1_points": 63,
+   "league_entry_2": 368340,
+   "league_entry_2_points": 34,
+   "winning_league_entry": null,
+   "winning_method": null
+  },
+  {
+   "event": 8,
+   "finished": true,
+   "started": true,
+   "league_entry_1": 360413,
+   "league_entry_1_points": 48,
+   "league_entry_2": 360443,
+   "league_entry_2_points": 55,
+   "winning_league_entry": null,
+   "winning_method": null
+  },
+  {
+   "event": 9,
+   "finished": true,
+   "started": true,
+   "league_entry_1": 360305,
+   "league_entry_1_points": 50,
+   "league_entry_2": 360413,
+   "league_entry_2_points": 52,
+   "winning_league_entry": null,
+   "winning_method": null
+  },
+  {
+   "event": 9,
+   "finished": true,
+   "started": true,
+   "league_entry_1": 360443,
+   "league_entry_1_points": 50,
+   "league_entry_2": 360351,
+   "league_entry_2_points": 41,
+   "winning_league_entry": null,
+   "winning_method": null
+  },
+  {
+   "event": 9,
+   "finished": true,
+   "started": true,
+   "league_entry_1": 368340,
+   "league_entry_1_points": 50,
+   "league_entry_2": 368536,
+   "league_entry_2_points": 36,
+   "winning_league_entry": null,
+   "winning_method": null
+  },
+  {
+   "event": 10,
+   "finished": false,
+   "started": true,
+   "league_entry_1": 360443,
+   "league_entry_1_points": 0,
+   "league_entry_2": 360305,
+   "league_entry_2_points": 0,
+   "winning_league_entry": null,
+   "winning_method": null
+  },
+  {
+   "event": 10,
+   "finished": false,
+   "started": true,
+   "league_entry_1": 368340,
+   "league_entry_1_points": 0,
+   "league_entry_2": 360413,
+   "league_entry_2_points": 0,
+   "winning_league_entry": null,
+   "winning_method": null
+  },
+  {
+   "event": 10,
+   "finished": false,
+   "started": true,
+   "league_entry_1": 368536,
+   "league_entry_1_points": 0,
+   "league_entry_2": 360351,
+   "league_entry_2_points": 0,
+   "winning_league_entry": null,
+   "winning_method": null
+  },
+  {
+   "event": 11,
+   "finished": false,
+   "started": false,
+   "league_entry_1": 368340,
+   "league_entry_1_points": 0,
+   "league_entry_2": 360305,
+   "league_entry_2_points": 0,
+   "winning_league_entry": null,
+   "winning_method": null
+  },
+  {
+   "event": 11,
+   "finished": false,
+   "started": false,
+   "league_entry_1": 368536,
+   "league_entry_1_points": 0,
+   "league_entry_2": 360443,
+   "league_entry_2_points": 0,
+   "winning_league_entry": null,
+   "winning_method": null
+  },
+  {
+   "event": 11,
+   "finished": false,
+   "started": false,
+   "league_entry_1": 360351,
+   "league_entry_1_points": 0,
+   "league_entry_2": 360413,
+   "league_entry_2_points": 0,
+   "winning_league_entry": null,
+   "winning_method": null
+  }
+ ],
+ "standings": []
+}

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="da">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#121212">
+  <title>FPL Draft</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="#/kampe">
+        <img src="favicon.svg" alt="" width="32" height="32">
+        <div>
+          <h1 id="league-name">FPL Draft</h1>
+          <p>Head-to-head · sæson 26/27</p>
+        </div>
+      </a>
+    </div>
+    <nav class="tabs">
+      <a href="#/kampe" data-tab="kampe">Kampe</a>
+      <a href="#/tabel" data-tab="tabel">Tabel</a>
+      <a href="#/statistik" data-tab="statistik">Statistik</a>
+      <a href="#/aktivitet" data-tab="aktivitet">Transfers</a>
+    </nav>
+  </header>
+
+  <main id="app"></main>
+
+  <dialog id="player-dialog" class="sheet">
+    <button class="sheet-close" data-close aria-label="Luk">×</button>
+    <div class="sheet-body"></div>
+  </dialog>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
