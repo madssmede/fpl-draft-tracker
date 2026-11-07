@@ -60,6 +60,10 @@ Billeder (virker fra browseren):
 
 `calc.buildLineup`: Hvis `subs` er udfyldt (runden er afgjort), bruges FPL's opstilling. Ellers laver `provisionalAutoSubs` foreløbige udskiftninger. En startspiller med 0 minutter, hvis kamp er færdig, skiftes ud med den første bænkspiller med minutter, hvis formationen holder (1 GK, 3–5 DEF, 2–5 MID, 1–3 FWD). Målmand kan kun erstattes af målmand. Testet mod runde 9, hvor resultatet rammer FPL's 52 point.
 
+## Bedste opstilling (Spillere-fanen)
+
+`calc.bestLineup` vælger de 11 spillere med flest samlede point i sæsonen. Ejerens regel: 1 målmand, 3–5 forsvarere, **3–5 midtbanespillere** (strammere end FPL, der tillader 2) og 1–3 angribere. Den følger holdfilteret (alle, frie spillere eller ét hold), men ikke positionsfilteret.
+
 ## Idéer, der er nævnt, men ikke bygget
 
 - Side for draften i runde 21 (draftrækkefølge og valg)

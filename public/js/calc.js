@@ -147,6 +147,38 @@ export function playerList(players, elementStatus, { position = null, owner = nu
     );
 }
 
+/**
+ * Den bedst mulige startopstilling: de 11 spillere med flest samlede point.
+ * Reglerne: 1 målmand, 3-5 forsvarere, 3-5 midtbanespillere og 1-3 angribere.
+ * Vi prøver hver tilladt formation med de bedste spillere på hver position og
+ * tager den med flest point. Giver null, hvis ingen formation kan stilles.
+ */
+export const BEST_LINEUP_RULES = { 1: [1, 1], 2: [3, 5], 3: [3, 5], 4: [1, 3] };
+
+export function bestLineup(players, rules = BEST_LINEUP_RULES) {
+  const byPos = {};
+  for (const type of Object.values(POS)) {
+    byPos[type] = players
+      .filter((p) => p.element_type === type)
+      .sort((a, b) => b.total_points - a.total_points || a.web_name.localeCompare(b.web_name, "da"));
+  }
+  const range = ([min, max]) => Array.from({ length: max - min + 1 }, (_, i) => min + i);
+
+  let best = null;
+  for (const gk of range(rules[1]))
+    for (const def of range(rules[2]))
+      for (const mid of range(rules[3]))
+        for (const fwd of range(rules[4])) {
+          const counts = { 1: gk, 2: def, 3: mid, 4: fwd };
+          if (gk + def + mid + fwd !== 11) continue;
+          if (Object.entries(counts).some(([type, n]) => byPos[type].length < n)) continue;
+          const rows = Object.entries(counts).map(([type, n]) => byPos[type].slice(0, n));
+          const total = rows.flat().reduce((sum, p) => sum + p.total_points, 0);
+          if (!best || total > best.total) best = { formation: `${def}-${mid}-${fwd}`, rows, total };
+        }
+  return best;
+}
+
 /** Seneste færdige runde i ligaen (0 hvis ingen). */
 export function lastFinishedEvent(details) {
   return details.matches.filter((m) => m.finished).reduce((max, m) => Math.max(max, m.event), 0);

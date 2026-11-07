@@ -123,6 +123,38 @@ test("spillerliste: alle spillere, filtre og sortering", () => {
   assert.deepEqual(rows.map((r) => r.owner), [null, 111, 222, 111, null]);
 });
 
+test("bedste opstilling: vælger formationen med flest point", () => {
+  let id = 0;
+  const make = (element_type, points) => points.map((total_points) => ({ id: ++id, web_name: `S${id}`, element_type, total_points }));
+  const players = [
+    ...make(1, [50, 40]),
+    ...make(2, [60, 55, 50, 45, 10, 5]),
+    ...make(3, [70, 65, 60, 20, 15, 1]),
+    ...make(4, [80, 75, 12, 2]),
+  ];
+  const best = calc.bestLineup(players);
+  // 4-4-2 giver 50 + (60+55+50+45) + (70+65+60+20) + (80+75) = 630, mere end alle andre formationer
+  assert.equal(best.formation, "4-4-2");
+  assert.equal(best.total, 630);
+  assert.deepEqual(best.rows.map((r) => r.length), [1, 4, 4, 2]);
+  assert.deepEqual(best.rows[0].map((p) => p.total_points), [50]);
+  assert.equal(best.rows.flat().length, 11);
+});
+
+test("bedste opstilling: følger reglerne og giver null, hvis det ikke kan lade sig gøre", () => {
+  let id = 0;
+  const make = (element_type, points) => points.map((total_points) => ({ id: ++id, web_name: `S${id}`, element_type, total_points }));
+  // Mange gode angribere, men højst 3 må spille. Midtbanen skal have mindst 3.
+  const players = [...make(1, [10]), ...make(2, [1, 1, 1, 1, 1]), ...make(3, [1, 1, 1, 1, 1]), ...make(4, [99, 99, 99, 99, 99])];
+  const best = calc.bestLineup(players);
+  assert.equal(best.formation, "3-4-3");
+  assert.equal(best.rows[3].length, 3);
+  assert.ok(best.rows[2].length >= 3);
+
+  assert.equal(calc.bestLineup(make(2, [5, 5, 5])), null); // ingen målmand
+  assert.equal(calc.bestLineup([]), null);
+});
+
 // --- Up the Spurs, runde 9 (rigtige data) ---------------------------------
 const P = (id, web_name, element_type, team) => [id, { id, web_name, element_type, team, code: 0 }];
 const players = new Map([

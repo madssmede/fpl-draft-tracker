@@ -173,6 +173,14 @@ main { padding-top: 16px; padding-bottom: 48px; }
 .team-columns { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr); align-items: start; }
 @media (min-width: 820px) { .team-columns { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .player.squad-player { cursor: default; }
+.player.squad-player[data-season-player] { cursor: pointer; }
+.pitch-owner { position: absolute; left: -6px; top: -4px; }
+.crest-xs { --size: 20px; box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.35); }
+.best-card { margin-bottom: 12px; }
+.best-card .squad-pitch { padding-left: max(6px, calc(50% - 260px)); padding-right: max(6px, calc(50% - 260px)); }
+.best-card .pitch-total small { font-size: 13px; font-weight: 600; margin-right: 4px; }
+.best-card .pitch-total { flex: none; white-space: nowrap; }
+.best-card .pitch-head .names small { white-space: normal; }
 .squad-pitch { gap: 18px; padding: 22px 6px; }
 .squad-note { margin-left: 2px; font-size: 13px; }
 .squad-empty { padding: 0 14px 14px; }

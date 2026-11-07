@@ -151,11 +151,14 @@ export async function roundsView() {
 // Holdside: nøgletal, trup og resultater for ét hold
 // ---------------------------------------------------------------------------
 
-/** Én spiller på holdsidens bane. Viser point for hele sæsonen, og der er ingen pop-up. */
-function squadPlayer(p) {
+/**
+ * Én spiller på en bane med point for hele sæsonen.
+ * popup: et tryk åbner pop-up'en med sæsontal. owner: holdet, der ejer spilleren (vises som et lille mærke).
+ */
+function squadPlayer(p, { popup = false, owner = null } = {}) {
   return `
-    <div class="player squad-player">
-      <span class="player-photo">${playerPhoto(p)}</span>
+    <div class="player squad-player" ${popup ? `data-season-player="${p.id}"` : ""}>
+      <span class="player-photo">${playerPhoto(p)}${owner ? `<span class="pitch-owner">${crest(owner, "xs")}</span>` : ""}</span>
       <span class="player-name">${esc(p.web_name)}</span>
       <span class="pts">${p.total_points}</span>
     </div>`;
@@ -184,7 +187,7 @@ export async function teamView(idParam) {
   const squad = calc
     .squadByPosition(status.element_status ?? [], entry.entry_id, idx.players)
     .filter((group) => group.players.length)
-    .map((group) => `<div class="pitch-row">${group.players.map(squadPlayer).join("")}</div>`)
+    .map((group) => `<div class="pitch-row">${group.players.map((p) => squadPlayer(p)).join("")}</div>`)
     .join("");
 
   const results = history
@@ -288,7 +291,25 @@ export async function playersView(sortParam, positionParam, teamParam) {
     })
     .join("");
 
+  // Bedste opstilling ud fra holdfilteret (alle, frie eller ét hold). Positionsfilteret bruges ikke her.
+  const pool = calc.playerList(idx.players, status.element_status ?? [], { owner }).map((r) => r.player);
+  const best = calc.bestLineup(pool);
+  const ownerOf = new Map((status.element_status ?? []).map((s) => [s.element, byEntryId.get(s.owner)]));
+  const scope = team ? `for ${esc(team.entry_name)}` : freeOnly ? "blandt frie spillere" : "blandt alle spillere";
+  const bestPitch = best
+    ? `<div class="pitch squad-pitch">${best.rows
+        .map((row) => `<div class="pitch-row">${row.map((p) => squadPlayer(p, { popup: true, owner: team ? null : ownerOf.get(p.id) })).join("")}</div>`)
+        .join("")}</div>`
+    : `<p class="muted squad-empty">Der er ikke spillere nok til en opstilling.</p>`;
+
   return `
+    <section class="card pitch-card best-card">
+      <header class="pitch-head">
+        <div class="names"><strong>Bedste opstilling</strong><small>${scope} · point i sæsonen</small></div>
+        ${best ? `<span class="pitch-total"><small class="muted">${best.formation}</small> ${best.total}</span>` : ""}
+      </header>
+      ${bestPitch}
+    </section>
     <section class="card filters">
       <div class="chips">${chips}</div>
       <select class="team-select" data-nav aria-label="Vælg hold">${teamOptions}</select>
