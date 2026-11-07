@@ -375,6 +375,10 @@ a.record[href]:hover { background: var(--card-2); }
 .stat-table { width: 100%; border-collapse: collapse; font-size: 14px; }
 .stat-table td { padding: 8px 0; border-top: 1px solid var(--line); }
 .stat-table td:last-child { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+.points-table th { padding: 0 0 6px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+.points-table .stat-val { width: 64px; text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+.points-table .stat-pts { width: 56px; text-align: right; }
+.points-table tfoot td { font-weight: 800; border-top: 2px solid var(--line); }
 
 /* ---------- Tilstande ---------- */
 .loading { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 60px 0; color: var(--muted); }

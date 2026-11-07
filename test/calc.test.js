@@ -155,6 +155,26 @@ test("bedste opstilling: følger reglerne og giver null, hvis det ikke kan lade 
   assert.equal(calc.bestLineup([]), null);
 });
 
+test("point pr. ting fra FPL's explain, også ved dobbeltrunde", () => {
+  const live = {
+    elements: {
+      7: {
+        stats: { total_points: 12 },
+        explain: [
+          [[{ stat: "minutes", value: 90, points: 2 }, { stat: "goals_scored", value: 1, points: 5 }], 101],
+          [[{ stat: "minutes", value: 30, points: 1 }, { stat: "assists", value: 1, points: 3 }, { stat: "yellow_cards", value: 1, points: -1 }], 102],
+        ],
+      },
+      8: { stats: { total_points: 0 }, explain: [] },
+    },
+  };
+  assert.deepEqual(calc.pointsByStat(live, 7), { minutes: 3, goals_scored: 5, assists: 3, yellow_cards: -1 });
+  assert.equal(Object.values(calc.pointsByStat(live, 7)).reduce((a, b) => a + b), 10);
+  assert.deepEqual(calc.pointsByStat(live, 8), {});
+  assert.deepEqual(calc.pointsByStat(live, 999), {}); // spiller uden data
+  assert.deepEqual(calc.pointsByStat(null, 7), {});
+});
+
 // --- Up the Spurs, runde 9 (rigtige data) ---------------------------------
 const P = (id, web_name, element_type, team) => [id, { id, web_name, element_type, team, code: 0 }];
 const players = new Map([

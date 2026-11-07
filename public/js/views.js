@@ -488,9 +488,19 @@ export async function playerDetail(elementId) {
   const idx = await playerIndex();
   const club = idx.clubs.get(s.player.team);
   const type = idx.types.get(s.player.element_type);
-  const rows = STAT_LABELS.filter(([key]) => s.stats && (s.stats[key] || key === "minutes"))
-    .map(([key, label]) => `<tr><td>${label}</td><td>${s.stats[key]}</td></tr>`)
+  // Hver linje: hvad spilleren har gjort, og hvor mange point det gav (fx "Minutter 90 +2").
+  const pts = s.pointsByStat ?? {};
+  const fmtPts = (p) => (p == null ? "" : p > 0 ? `+${p}` : p < 0 ? `−${Math.abs(p)}` : "0");
+  const rows = STAT_LABELS.filter(([key]) => s.stats && (s.stats[key] || key === "minutes" || pts[key]))
+    .map(([key, label]) => `<tr><td>${label}</td><td class="stat-val">${s.stats[key]}</td><td class="stat-pts">${fmtPts(pts[key])}</td></tr>`)
     .join("");
+  const table = rows
+    ? `<table class="stat-table points-table">
+        <thead><tr><th></th><th class="stat-val">Antal</th><th class="stat-pts">Point</th></tr></thead>
+        <tbody>${rows}</tbody>
+        <tfoot><tr><td>I alt</td><td></td><td class="stat-pts">${s.points}</td></tr></tfoot>
+      </table>`
+    : "";
   return `
     <div class="sheet-head">
       ${playerPhoto(s.player)}
@@ -498,7 +508,7 @@ export async function playerDetail(elementId) {
       <p class="muted">${clubBadge(club)} ${esc(club?.name ?? "")} · ${esc(type?.singular_name_short ?? "")}</p></div>
       <span class="sheet-pts">${s.points}<small>point</small></span>
     </div>
-    ${rows ? `<table class="stat-table">${rows}</table>` : `<p class="muted">Har ikke spillet endnu i denne runde.</p>`}`;
+    ${table || `<p class="muted">Har ikke spillet endnu i denne runde.</p>`}`;
 }
 
 function headToHead(details, idA, idB, entries) {

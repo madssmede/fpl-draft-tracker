@@ -321,6 +321,20 @@ export function liveStats(live, elementId) {
 }
 
 /**
+ * Hvor mange point hver ting gav i runden, fx { minutes: 2, goals_scored: 5 }.
+ * FPL's "explain" har én liste pr. kamp (to ved dobbeltrunde), så vi lægger dem sammen.
+ * Formatet er [[[{ stat, value, points }, ...], kamp-id], ...].
+ */
+export function pointsByStat(live, elementId) {
+  const el = live?.elements?.[elementId] ?? live?.elements?.[String(elementId)];
+  const out = {};
+  for (const [items] of el?.explain ?? []) {
+    for (const item of items ?? []) out[item.stat] = (out[item.stat] ?? 0) + item.points;
+  }
+  return out;
+}
+
+/**
  * Bygger et holds opstilling med point.
  *
  * picksData:  svaret fra entry/{entry_id}/event/{gw}
@@ -346,6 +360,7 @@ export function buildLineup(picksData, live, players) {
         points: stats?.total_points ?? 0,
         minutes: stats?.minutes ?? 0,
         stats,
+        pointsByStat: pointsByStat(live, p.element),
         status: player ? clubStatus(fixtures, player.team) : "none",
         subIn: false,
         subOut: false,
