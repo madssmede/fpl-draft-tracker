@@ -27,6 +27,7 @@ Miljøvariabler: `PORT` (sættes af Render), `LEAGUE_ID` (standard 67616), `MOCK
 |---|---|
 | `server.js` | Serverer `public/` og proxyer whitelistede FPL-endpoints under `/api/fpl/...` med cache i hukommelsen (60–600 s). Viser gamle data, hvis FPL fejler. `/healthz` til oppetidstjek. |
 | `public/index.html` | Skelet: top, faner, `<dialog>` til spillerdetaljer |
+| `public/favicon.svg` | Logoet (også i toppen af siden): "S24" og "FPL" på hvid baggrund, skrå bogstaver tegnet som figurer fra Arial Black. Rød = Sport 24's røde `#D71149` (målt i deres logo), mørk = `#161616`. |
 | `public/styles.css` | Alt design. Mørkt tema som standard, lyst via `prefers-color-scheme`. Farver som CSS-variabler i `:root`. |
 | `public/js/main.js` | Hash-router (`#/kampe/10`, `#/kamp/10/<id>-<id>`, `#/runder`, `#/hold/<id>`, `#/tabel`, `#/statistik`, `#/spillere/<sortering>/<position>/<hold>`, `#/aktivitet`), auto-opdatering hvert 60. sekund mens runden er live |
 | `public/js/views.js` | Én funktion pr. side, returnerer HTML-strenge |
