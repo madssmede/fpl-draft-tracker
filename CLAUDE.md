@@ -53,7 +53,7 @@ Base: `https://draft.premierleague.com/api/`. Ingen login, **ingen CORS-header**
 - `draft/{id}/choices`: draftvalg. Bruges endnu ikke. Ligaen har en ny draft planlagt til runde 21 (14. januar 2027), hvor rækkefølgen sættes efter placering.
 
 Billeder (virker fra browseren):
-- Spillerfoto: `https://resources.premierleague.com/premierleague/photos/players/110x140/p{code}.png`
+- Spillerfoto: `https://resources.premierleague.com/premierleague25/photos/players/110x140/{code}.png` (opdaterede trøjer, men ca. 6 % af spillerne mangler pr. november 2026). Reserve: den gamle mappe `https://resources.premierleague.com/premierleague/photos/players/110x140/p{code}.png`, hvor mange billeder er fra 2024. `ui.playerPhoto` prøver dem i den rækkefølge.
 - Klubmærke: `https://resources.premierleague.com/premierleague/badges/70/t{team.code}.png`
 
 ## Livepoint og automatiske udskiftninger

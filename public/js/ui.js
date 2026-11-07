@@ -25,8 +25,12 @@ export const managerName = (entry) => `${entry.player_first_name} ${entry.player
 
 export function playerPhoto(player) {
   if (!player) return `<span class="photo" data-initials="?"></span>`;
-  // Initialerne ligger bag billedet og ses, hvis billedet ikke kan hentes.
-  return `<span class="photo" data-initials="${esc(player.web_name.slice(0, 2))}"><img loading="lazy" alt="" src="https://resources.premierleague.com/premierleague/photos/players/110x140/p${player.code}.png" onerror="this.remove()"></span>`;
+  // Premier Leagues nye billedmappe har de opdaterede trøjer, men ikke alle spillere.
+  // Mangler billedet, prøves den gamle mappe. Mangler det også der, fjernes billedet,
+  // og så ses initialerne, der ligger bagved.
+  const photo = `https://resources.premierleague.com/premierleague25/photos/players/110x140/${player.code}.png`;
+  const oldPhoto = `https://resources.premierleague.com/premierleague/photos/players/110x140/p${player.code}.png`;
+  return `<span class="photo" data-initials="${esc(player.web_name.slice(0, 2))}"><img loading="lazy" alt="" src="${photo}" onerror="if(this.src==='${oldPhoto}'){this.remove()}else{this.src='${oldPhoto}'}"></span>`;
 }
 
 export function clubBadge(club) {
