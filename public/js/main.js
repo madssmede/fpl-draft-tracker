@@ -14,6 +14,7 @@ const routes = {
   runder: () => views.roundsView(),
   tabel: () => views.tableView(),
   statistik: () => views.statsView(),
+  spillere: (sort, position, team) => views.playersView(sort, position, team),
   aktivitet: () => views.activityView(),
   hold: (id) => views.teamView(id), // har ingen fane, man kommer hertil via holdnavne
 };
@@ -68,6 +69,22 @@ app.addEventListener("click", async (e) => {
   dialog.querySelector(".sheet-body").innerHTML = html;
   dialog.showModal();
 });
+
+// Klik på en spiller i spillerlisten -> pop-up med hans tal for hele sæsonen
+app.addEventListener("click", async (e) => {
+  const row = e.target.closest("[data-season-player]");
+  if (!row || e.target.closest("[data-team]")) return; // holdnavnet fører til holdet
+  const html = await views.seasonPlayerDetail(row.dataset.seasonPlayer);
+  if (!html) return;
+  dialog.querySelector(".sheet-body").innerHTML = html;
+  dialog.showModal();
+});
+
+// Rullemenuer, hvor hvert valg er en adresse (fx holdfilteret på Spillere)
+app.addEventListener("change", (e) => {
+  if (e.target.matches("select[data-nav]")) location.hash = e.target.value;
+});
+
 dialog.addEventListener("click", (e) => {
   if (e.target === dialog || e.target.closest("[data-close]")) dialog.close();
 });
@@ -85,6 +102,7 @@ setInterval(async () => {
 }, REFRESH_MS);
 
 window.addEventListener("hashchange", () => {
+  if (dialog.open) dialog.close(); // fx efter klik på holdnavnet i pop-up'en
   render();
   window.scrollTo(0, 0);
 });

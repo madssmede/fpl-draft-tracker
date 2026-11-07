@@ -7,6 +7,7 @@ En FotMob-agtig side til vores FPL Draft-liga (SPORT 24 INDKØB).
 - **Runder:** alle afsluttede runder med resultater og rundens højeste score
 - **Tabel:** stilling, form og pile for op- og nedrykning
 - **Statistik:** heldtabel (alle mod alle), rekorder og point pr. runde
+- **Spillere:** alle Premier League-spillere med sæsontal og ejer, filter på position, hold og frie spillere, sortering og pop-up med alle tal
 - **Transfers:** waivers, frie spillere og byttehandler
 - **Holdside:** nøgletal, trup og resultater. Åbnes ved at trykke på et holdnavn
 

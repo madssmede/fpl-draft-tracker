@@ -221,6 +221,136 @@ export async function teamView(idParam) {
 }
 
 // ---------------------------------------------------------------------------
+// Spillere: alle spillere med sæsontal, ejer, filtre og sortering
+// ---------------------------------------------------------------------------
+
+const POSITION_FILTERS = [
+  [null, "Alle"],
+  [1, "Målmænd"],
+  [2, "Forsvar"],
+  [3, "Midtbane"],
+  [4, "Angreb"],
+];
+
+/** Adressen husker valgene: #/spillere/<sortering>/<position>/<hold>, fx #/spillere/mal/4/alle */
+function playersUrl({ sort, position, team }) {
+  return `#/spillere/${sort}/${position ?? "alle"}/${team ?? "alle"}`;
+}
+
+export async function playersView(sortParam, positionParam, teamParam) {
+  const [details, idx, status] = await Promise.all([api.details(), playerIndex(), api.elementStatus()]);
+  const entries = calc.entryMap(details);
+  const byEntryId = new Map(details.league_entries.map((e) => [e.entry_id, e]));
+
+  const sort = calc.PLAYER_SORTS[sortParam] ? sortParam : "point";
+  const position = [1, 2, 3, 4].includes(Number(positionParam)) ? Number(positionParam) : null;
+  // Ejer-filteret: et hold, "fri" (spillere uden ejer) eller alle
+  const team = entries.get(Number(teamParam)) ?? null;
+  const freeOnly = !team && teamParam === "fri";
+  const state = { sort, position, team: team?.id ?? (freeOnly ? "fri" : null) };
+
+  const owner = team ? team.entry_id : freeOnly ? "fri" : null;
+  const rows = calc.playerList(idx.players, status.element_status ?? [], { position, owner, sort });
+
+  const chips = POSITION_FILTERS.map(
+    ([value, label]) => `<a class="chip ${value === position ? "active" : ""}" href="${playersUrl({ ...state, position: value })}">${label}</a>`
+  ).join("");
+  const teamOptions = [
+    `<option value="${playersUrl({ ...state, team: null })}">Alle spillere</option>`,
+    `<option value="${playersUrl({ ...state, team: "fri" })}" ${freeOnly ? "selected" : ""}>Frie spillere</option>`,
+  ]
+    .concat(
+      details.league_entries.map(
+        (e) => `<option value="${playersUrl({ ...state, team: e.id })}" ${e.id === team?.id ? "selected" : ""}>${esc(e.entry_name)}</option>`
+      )
+    )
+    .join("");
+
+  // Kolonneoverskrift, der sorterer listen, når man trykker på den.
+  const sortHead = (key, label, cls = "") =>
+    `<th class="num ${cls}"><a class="sort-link ${key === sort ? "active" : ""}" href="${playersUrl({ ...state, sort: key })}">${label}</a></th>`;
+
+  const body = rows
+    .map(({ player: p, owner }, i) => {
+      const club = idx.clubs.get(p.team);
+      const ownerEntry = byEntryId.get(owner);
+      return `
+        <tr class="player-row" data-season-player="${p.id}">
+          <td class="rank muted hide-sm">${i + 1}</td>
+          <td><div class="team-cell">${playerPhoto(p)}<div class="names"><strong>${esc(p.web_name)}</strong><small>${clubBadge(club)} ${esc(club?.short_name ?? "")} · ${esc(idx.types.get(p.element_type)?.singular_name_short ?? "")}</small></div></div></td>
+          <td>${ownerEntry ? `<span class="owner-cell">${crest(ownerEntry, "sm")}<span class="hide-sm">${teamLinkInCard(ownerEntry)}</span></span>` : `<span class="muted free">Fri</span>`}</td>
+          <td class="num total">${p.total_points}</td>
+          <td class="num hide-xs">${esc(String(p.form).replace(".", ","))}</td>
+          <td class="num">${p.goals_scored}</td>
+          <td class="num">${p.assists}</td>
+          <td class="num hide-sm">${p.minutes}</td>
+        </tr>`;
+    })
+    .join("");
+
+  return `
+    <section class="card filters">
+      <div class="chips">${chips}</div>
+      <select class="team-select" data-nav aria-label="Vælg hold">${teamOptions}</select>
+    </section>
+    <section class="card table-card">
+      <h2 class="card-title">Spillere <span class="muted">${rows.length} spillere · tryk på en kolonne for at sortere</span></h2>
+      ${
+        rows.length
+          ? `<table class="league-table players-table">
+              <thead><tr><th class="hide-sm">#</th><th>Spiller</th><th>Ejer</th>${sortHead("point", "P")}${sortHead("form", "Form", "hide-xs")}${sortHead("mal", "M")}${sortHead("assists", "A")}${sortHead("minutter", "Min", "hide-sm")}</tr></thead>
+              <tbody>${body}</tbody>
+            </table>`
+          : `<p class="muted card-intro">Ingen spillere passer til filteret.</p>`
+      }
+    </section>
+    <p class="note">P = point i sæsonen · M = mål · A = assists. Tallene gælder hele sæsonen, også fra før holdet fik spilleren.</p>`;
+}
+
+const SEASON_STATS = [
+  ["total_points", "Point"],
+  ["points_per_game", "Point pr. kamp"],
+  ["form", "Form"],
+  ["minutes", "Minutter"],
+  ["starts", "Startet inde"],
+  ["goals_scored", "Mål"],
+  ["assists", "Assists"],
+  ["expected_goals", "Forventede mål (xG)"],
+  ["expected_assists", "Forventede assists (xA)"],
+  ["clean_sheets", "Clean sheets"],
+  ["goals_conceded", "Mål imod"],
+  ["saves", "Redninger"],
+  ["defensive_contribution", "Defensive aktioner"],
+  ["bonus", "Bonus"],
+  ["yellow_cards", "Gule kort"],
+  ["red_cards", "Røde kort"],
+];
+
+/** Pop-up med en spillers tal for hele sæsonen. */
+export async function seasonPlayerDetail(elementId) {
+  const [details, idx, status] = await Promise.all([api.details(), playerIndex(), api.elementStatus()]);
+  const p = idx.players.get(Number(elementId));
+  if (!p) return "";
+  const club = idx.clubs.get(p.team);
+  const type = idx.types.get(p.element_type);
+  const owner = (status.element_status ?? []).find((s) => s.element === p.id)?.owner;
+  const ownerEntry = details.league_entries.find((e) => e.entry_id === owner);
+  const rows = SEASON_STATS.filter(([key]) => p[key] != null)
+    .map(([key, label]) => `<tr><td>${label}</td><td>${esc(String(p[key]).replace(".", ","))}</td></tr>`)
+    .join("");
+  return `
+    <div class="sheet-head">
+      ${playerPhoto(p)}
+      <div><h3>${esc(p.first_name)} ${esc(p.second_name)}</h3>
+      <p class="muted">${clubBadge(club)} ${esc(club?.name ?? "")} · ${esc(type?.singular_name_short ?? "")}</p></div>
+      <span class="sheet-pts">${p.total_points}<small>point</small></span>
+    </div>
+    ${ownerEntry ? `<p class="sheet-owner">${crest(ownerEntry, "sm")}<span>Ejes af ${teamLink(ownerEntry)}</span></p>` : ""}
+    ${p.news ? `<p class="sheet-news">⚠️ ${esc(p.news)}</p>` : ""}
+    <table class="stat-table">${rows}</table>`;
+}
+
+// ---------------------------------------------------------------------------
 // Kampside med opstillinger
 // ---------------------------------------------------------------------------
 

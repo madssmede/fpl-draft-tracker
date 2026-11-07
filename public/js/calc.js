@@ -117,6 +117,36 @@ export function squadByPosition(elementStatus, entryId, players) {
   }));
 }
 
+/** Hvad man kan sortere spillerlisten efter, og hvilket felt i FPL's data det svarer til. */
+export const PLAYER_SORTS = {
+  point: (p) => p.total_points,
+  form: (p) => Number(p.form),
+  mal: (p) => p.goals_scored,
+  assists: (p) => p.assists,
+  minutter: (p) => p.minutes,
+};
+
+/**
+ * Spillerlisten: alle spillere i Premier League med deres ejer i ligaen (null = fri spiller).
+ * position: 1-4 eller null for alle.
+ * owner: null for alle, "fri" for spillere uden ejer, eller et holds entry_id.
+ * Ved lighed afgør samlede point og derefter navnet.
+ */
+export function playerList(players, elementStatus, { position = null, owner = null, sort = "point" } = {}) {
+  const key = PLAYER_SORTS[sort] ?? PLAYER_SORTS.point;
+  const owners = new Map(elementStatus.map((s) => [s.element, s.owner ?? null]));
+  return [...players.values()]
+    .map((player) => ({ player, owner: owners.get(player.id) ?? null }))
+    .filter((row) => position == null || row.player.element_type === position)
+    .filter((row) => owner == null || (owner === "fri" ? row.owner == null : row.owner === owner))
+    .sort(
+      (a, b) =>
+        key(b.player) - key(a.player) ||
+        b.player.total_points - a.player.total_points ||
+        a.player.web_name.localeCompare(b.player.web_name, "da")
+    );
+}
+
 /** Seneste færdige runde i ligaen (0 hvis ingen). */
 export function lastFinishedEvent(details) {
   return details.matches.filter((m) => m.finished).reduce((max, m) => Math.max(max, m.event), 0);

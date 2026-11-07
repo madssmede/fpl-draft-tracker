@@ -93,6 +93,36 @@ test("holdside: trup efter position med flest point øverst", () => {
   assert.deepEqual(groups.map((g) => [g.type, g.players.map((p) => p.id)]), [[1, [1]], [2, []], [3, [3, 2]], [4, []]]);
 });
 
+test("spillerliste: alle spillere, filtre og sortering", () => {
+  const mk = (id, web_name, element_type, total_points, goals_scored, form) => [id, { id, web_name, element_type, total_points, goals_scored, form, assists: 0, minutes: 0 }];
+  const ps = new Map([
+    mk(1, "Bo", 3, 40, 5, "2.0"),
+    mk(2, "Ali", 3, 40, 1, "6.5"),
+    mk(3, "Cee", 4, 60, 2, "1.0"),
+    mk(4, "Fri", 3, 99, 9, "9.9"), // fri spiller
+    mk(6, "Ny", 2, 10, 0, "0.0"), // står ikke i element-status: tæller som fri
+  ]);
+  const status = [
+    { element: 1, owner: 111 },
+    { element: 2, owner: 222 },
+    { element: 3, owner: 111 },
+    { element: 4, owner: null },
+    { element: 5, owner: 111 }, // findes ikke i spillerlisten
+  ];
+  const ids = (opts) => calc.playerList(ps, status, opts).map((r) => r.player.id);
+
+  assert.deepEqual(ids(), [4, 3, 2, 1, 6]); // point, ved lighed navn (Ali før Bo)
+  assert.deepEqual(ids({ sort: "mal" }), [4, 1, 3, 2, 6]);
+  assert.deepEqual(ids({ sort: "form" }), [4, 2, 1, 3, 6]); // form kommer som tekst fra FPL
+  assert.deepEqual(ids({ position: 3 }), [4, 2, 1]);
+  assert.deepEqual(ids({ owner: 111 }), [3, 1]);
+  assert.deepEqual(ids({ owner: "fri" }), [4, 6]);
+  assert.deepEqual(ids({ owner: "fri", position: 2 }), [6]);
+  assert.deepEqual(ids({ sort: "findes-ikke" }), [4, 3, 2, 1, 6]);
+  const rows = calc.playerList(ps, status);
+  assert.deepEqual(rows.map((r) => r.owner), [null, 111, 222, 111, null]);
+});
+
 // --- Up the Spurs, runde 9 (rigtige data) ---------------------------------
 const P = (id, web_name, element_type, team) => [id, { id, web_name, element_type, team, code: 0 }];
 const players = new Map([
