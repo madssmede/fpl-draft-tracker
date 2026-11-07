@@ -3,7 +3,7 @@
 
 import { api, playerIndex } from "./api.js";
 import * as calc from "./calc.js";
-import { esc, fmtDate, fmtShortDate, crest, managerName, playerPhoto, clubBadge, formPills } from "./ui.js";
+import { esc, fmtDate, fmtShortDate, crest, managerName, playerPhoto, clubBadge, formPills, teamLink, teamLinkInCard } from "./ui.js";
 
 // ---------------------------------------------------------------------------
 // Fælles: hvilken runde er vi i?
@@ -78,13 +78,13 @@ export async function matchesView(gwParam) {
         <a class="card match-card" href="#/kamp/${gw}/${a.id}-${b.id}">
           <div class="side home ${winB ? "lost" : ""}">
             ${crest(a)}
-            <div class="names"><strong>${esc(a.entry_name)}</strong><small>${esc(managerName(a))}</small></div>
+            <div class="names"><strong>${teamLinkInCard(a)}</strong><small>${esc(managerName(a))}</small></div>
           </div>
           <div class="score ${state}">
             ${showScore ? `<span>${sa}</span><i>–</i><span>${sb}</span>` : `<span class="vs">vs</span>`}
           </div>
           <div class="side away ${winA ? "lost" : ""}">
-            <div class="names"><strong>${esc(b.entry_name)}</strong><small>${esc(managerName(b))}</small></div>
+            <div class="names"><strong>${teamLinkInCard(b)}</strong><small>${esc(managerName(b))}</small></div>
             ${crest(b)}
           </div>
           ${toPlay}
@@ -122,16 +122,16 @@ export async function roundsView() {
     const sb = m.league_entry_2_points;
     return `
       <a class="result-row" href="#/kamp/${event}/${a.id}-${b.id}">
-        <span class="result-team home ${sb > sa ? "lost" : ""}"><strong>${esc(a.entry_name)}</strong>${crest(a, "sm")}</span>
+        <span class="result-team home ${sb > sa ? "lost" : ""}"><strong>${teamLinkInCard(a)}</strong>${crest(a, "sm")}</span>
         <span class="result-score">${sa}<i>–</i>${sb}</span>
-        <span class="result-team ${sa > sb ? "lost" : ""}">${crest(b, "sm")}<strong>${esc(b.entry_name)}</strong></span>
+        <span class="result-team ${sa > sb ? "lost" : ""}">${crest(b, "sm")}<strong>${teamLinkInCard(b)}</strong></span>
       </a>`;
   };
 
   const cards = rounds
     .map((r) => {
       const started = idx.events.get(r.event)?.deadline_time;
-      const topNames = r.topIds.map((id) => esc(entries.get(id)?.entry_name ?? "?")).join(" og ");
+      const topNames = r.topIds.map((id) => teamLink(entries.get(id))).join(" og ");
       return `
         <section class="card round-card">
           <div class="round-head">
@@ -145,6 +145,79 @@ export async function roundsView() {
     .join("");
 
   return `<div class="stack">${cards}</div>`;
+}
+
+// ---------------------------------------------------------------------------
+// Holdside: nøgletal, trup og resultater for ét hold
+// ---------------------------------------------------------------------------
+
+/** Én spiller på holdsidens bane. Viser point for hele sæsonen, og der er ingen pop-up. */
+function squadPlayer(p) {
+  return `
+    <div class="player squad-player">
+      <span class="player-photo">${playerPhoto(p)}</span>
+      <span class="player-name">${esc(p.web_name)}</span>
+      <span class="pts">${p.total_points}</span>
+    </div>`;
+}
+
+export async function teamView(idParam) {
+  const id = Number(idParam);
+  const [details, idx, status] = await Promise.all([api.details(), playerIndex(), api.elementStatus()]);
+  const entries = calc.entryMap(details);
+  const entry = entries.get(id);
+  if (!entry) return `<div class="card">Holdet blev ikke fundet.</div>`;
+
+  const { standing, history, average, best, worst } = calc.teamProfile(details, id, idx.points);
+
+  const tile = (title, value, sub) => `<div class="card record"><small>${title}</small><strong>${value}</strong><span>${sub}</span></div>`;
+  const tiles = history.length
+    ? `<div class="records">
+        ${tile("Placering", `${standing.rank}.`, `${standing.pts} point · ${standing.won}-${standing.drawn}-${standing.lost}`)}
+        ${tile("Snit pr. runde", average.toFixed(1).replace(".", ","), `${standing.pf} scorede point`)}
+        ${tile("Bedste runde", best.own, `Runde ${best.event}`)}
+        ${tile("Dårligste runde", worst.own, `Runde ${worst.event}`)}
+      </div>`
+    : "";
+
+  // Hele truppen på banen: keeperne foran målet og hver position på sin egen linje.
+  const squad = calc
+    .squadByPosition(status.element_status ?? [], entry.entry_id, idx.players)
+    .filter((group) => group.players.length)
+    .map((group) => `<div class="pitch-row">${group.players.map(squadPlayer).join("")}</div>`)
+    .join("");
+
+  const results = history
+    .map((h) => {
+      const opponent = entries.get(h.opponentId);
+      return `
+        <a class="history-row" href="#/kamp/${h.event}/${id}-${h.opponentId}">
+          <span class="muted">R${h.event}</span>
+          <span class="pill pill-${h.res}">${h.res}</span>
+          <span class="history-opponent">${teamLinkInCard(opponent)}</span>
+          <strong>${h.own}–${h.other}</strong>
+        </a>`;
+    })
+    .join("");
+
+  return `
+    <a class="back" href="#/tabel">‹ Tabel</a>
+    <section class="card team-head">
+      ${crest(entry, "lg")}
+      <div class="names"><h2>${esc(entry.entry_name)}</h2><small>${esc(managerName(entry))}</small></div>
+      <div class="form hide-xs">${formPills(standing.form)}</div>
+    </section>
+    ${tiles}
+    <div class="team-columns">
+      <section class="card pitch-card">
+        <header class="pitch-head"><strong>Trup</strong><span class="muted squad-note">point i sæsonen</span></header>
+        ${squad ? `<div class="pitch squad-pitch">${squad}</div>` : `<p class="muted squad-empty">Truppen kunne ikke findes.</p>`}
+      </section>
+      <section class="card">
+        <h2 class="card-title">Resultater</h2>
+        ${results || `<p class="muted">Holdet har ikke spillet endnu.</p>`}
+      </section>
+    </div>`;
 }
 
 // ---------------------------------------------------------------------------
@@ -200,7 +273,7 @@ export async function matchView(gw, pair) {
 }
 
 function scoreSide(entry) {
-  return `<div class="score-side">${crest(entry, "lg")}<strong>${esc(entry.entry_name)}</strong><small>${esc(managerName(entry))}</small></div>`;
+  return `<div class="score-side">${crest(entry, "lg")}<strong>${teamLink(entry)}</strong><small>${esc(managerName(entry))}</small></div>`;
 }
 
 function pitch(entry, lineup, live, idx) {
@@ -211,7 +284,7 @@ function pitch(entry, lineup, live, idx) {
   const bench = lineup.bench.map((s) => playerChip(s, live, idx, true)).join("");
   return `
     <section class="card pitch-card">
-      <header class="pitch-head">${crest(entry, "sm")}<strong>${esc(entry.entry_name)}</strong><span class="pitch-total">${lineup.total}</span></header>
+      <header class="pitch-head">${crest(entry, "sm")}<strong>${teamLink(entry)}</strong><span class="pitch-total">${lineup.total}</span></header>
       <div class="pitch">${rows}</div>
       <div class="bench"><span class="bench-label">Bænk</span><div class="bench-row">${bench}</div></div>
     </section>`;
@@ -286,7 +359,7 @@ function headToHead(details, idA, idB, entries) {
     .map((m) => {
       const one = entries.get(m.league_entry_1);
       const two = entries.get(m.league_entry_2);
-      return `<a class="h2h-row" href="#/kamp/${m.event}/${one.id}-${two.id}"><span class="muted">R${m.event}</span><span>${esc(one.entry_name)}</span><strong>${m.league_entry_1_points} – ${m.league_entry_2_points}</strong><span>${esc(two.entry_name)}</span></a>`;
+      return `<a class="h2h-row" href="#/kamp/${m.event}/${one.id}-${two.id}"><span class="muted">R${m.event}</span><span>${teamLinkInCard(one)}</span><strong>${m.league_entry_1_points} – ${m.league_entry_2_points}</strong><span>${teamLinkInCard(two)}</span></a>`;
     })
     .join("");
   return `<section class="card"><h3 class="card-title">Indbyrdes opgør</h3>${rows}</section>`;
@@ -307,7 +380,7 @@ export async function tableView() {
       return `
       <tr>
         <td class="rank rank-${r.rank}">${r.rank}${move}</td>
-        <td><div class="team-cell">${crest(r.entry, "sm")}<div class="names"><strong>${esc(r.entry.entry_name)}</strong><small>${esc(managerName(r.entry))}</small></div></div></td>
+        <td><div class="team-cell">${crest(r.entry, "sm")}<div class="names"><strong>${teamLink(r.entry)}</strong><small>${esc(managerName(r.entry))}</small></div></div></td>
         <td class="num hide-sm">${r.played}</td>
         <td class="num hide-sm">${r.won}-${r.drawn}-${r.lost}</td>
         <td class="num">${r.pf}</td>
@@ -353,7 +426,7 @@ export async function statsView() {
       return `
         <tr>
           <td class="rank">${r.rank}</td>
-          <td><div class="team-cell">${crest(r.entry, "sm")}<div class="names"><strong>${esc(r.entry.entry_name)}</strong><small>Nr. ${real.get(r.entry.id)} i tabellen</small></div></div></td>
+          <td><div class="team-cell">${crest(r.entry, "sm")}<div class="names"><strong>${teamLink(r.entry)}</strong><small>Nr. ${real.get(r.entry.id)} i tabellen</small></div></div></td>
           <td class="num hide-xs">${r.won}-${r.drawn}-${r.lost}</td>
           <td class="num">${Math.round(r.winPct * 100)}%</td>
           <td class="num hide-xs">${r.tops}</td>
@@ -362,7 +435,7 @@ export async function statsView() {
     })
     .join("");
 
-  const name = (id) => esc(entries.get(id)?.entry_name ?? "?");
+  const name = (id) => teamLinkInCard(entries.get(id));
   const matchLine = (m) =>
     `${name(m.league_entry_1)} ${m.league_entry_1_points}–${m.league_entry_2_points} ${name(m.league_entry_2)}`;
   const record = (title, value, sub, href) =>
@@ -383,7 +456,7 @@ export async function statsView() {
           return `<td class="heat ${isTop ? "top" : ""}" style="--t:${t.toFixed(2)}" title="Runde ${ev}: ${p} point">${p}</td>`;
         })
         .join("");
-      return `<tr><th><div class="team-cell">${crest(e, "sm")}<span class="hide-xs">${esc(e.entry_name)}</span></div></th>${cells}</tr>`;
+      return `<tr><th><div class="team-cell">${crest(e, "sm")}<span class="hide-xs">${teamLink(e)}</span></div></th>${cells}</tr>`;
     })
     .join("");
 
@@ -433,7 +506,7 @@ export async function activityView() {
       time: t.added,
       event: t.event,
       html: `
-        <div class="act-head">${crest(byEntryId.get(t.entry) ?? { id: 0, short_name: "?" }, "sm")}<strong>${esc(byEntryId.get(t.entry)?.entry_name ?? "?")}</strong>
+        <div class="act-head">${crest(byEntryId.get(t.entry) ?? { id: 0, short_name: "?" }, "sm")}<strong>${teamLink(byEntryId.get(t.entry))}</strong>
           <span class="tag">${t.kind === "w" ? "Waiver" : "Fri spiller"}</span><span class="muted act-time">${fmtShortDate(t.added)}</span></div>
         <div class="swap"><span class="in">↑ ${clubBadge(pClub(t.element_in))} ${pName(t.element_in)}</span><span class="out">↓ ${clubBadge(pClub(t.element_out))} ${pName(t.element_out)}</span></div>`,
     });
@@ -449,7 +522,7 @@ export async function activityView() {
       time: t.response_time ?? t.offer_time,
       event: t.event,
       html: `
-        <div class="act-head"><strong>${esc(from?.entry_name ?? "?")} ⇄ ${esc(to?.entry_name ?? "?")}</strong>
+        <div class="act-head"><strong>${teamLink(from)} ⇄ ${teamLink(to)}</strong>
           <span class="tag tag-trade">Byttehandel</span><span class="muted act-time">${fmtShortDate(t.response_time ?? t.offer_time)}</span></div>${lines}`,
     });
   }

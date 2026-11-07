@@ -74,6 +74,49 @@ function addResult(row, own, other, event, points) {
   row.form.push({ event, res, own, other });
 }
 
+/**
+ * Alt til holdsiden: placering i tabellen, resultater med den nyeste først,
+ * samt gennemsnit, bedste og dårligste runde (null, før første runde er spillet).
+ */
+export function teamProfile(details, id, points = H2H_POINTS) {
+  const standing = computeStandings(details, Infinity, points).find((r) => r.entry.id === id);
+  if (!standing) return null;
+
+  const history = details.matches
+    .filter((m) => m.finished && (m.league_entry_1 === id || m.league_entry_2 === id))
+    .map((m) => {
+      const isFirst = m.league_entry_1 === id;
+      const own = isFirst ? m.league_entry_1_points : m.league_entry_2_points;
+      const other = isFirst ? m.league_entry_2_points : m.league_entry_1_points;
+      return { event: m.event, opponentId: isFirst ? m.league_entry_2 : m.league_entry_1, own, other, res: resultFor(own, other) };
+    })
+    .sort((a, b) => b.event - a.event);
+
+  const byScore = [...history].sort((a, b) => b.own - a.own);
+  return {
+    standing,
+    history,
+    average: history.length ? standing.pf / history.length : null,
+    best: byScore[0] ?? null,
+    worst: byScore.at(-1) ?? null,
+  };
+}
+
+/**
+ * Holdets nuværende trup delt op i positioner, med flest point øverst.
+ * entryId er holdets entry_id, for det er det, FPL gemmer i feltet owner.
+ */
+export function squadByPosition(elementStatus, entryId, players) {
+  const squad = elementStatus
+    .filter((s) => s.owner === entryId)
+    .map((s) => players.get(s.element))
+    .filter(Boolean);
+  return Object.values(POS).map((type) => ({
+    type,
+    players: squad.filter((p) => p.element_type === type).sort((a, b) => b.total_points - a.total_points),
+  }));
+}
+
 /** Seneste færdige runde i ligaen (0 hvis ingen). */
 export function lastFinishedEvent(details) {
   return details.matches.filter((m) => m.finished).reduce((max, m) => Math.max(max, m.event), 0);

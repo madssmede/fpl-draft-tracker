@@ -23,6 +23,17 @@ export function crest(entry, size = "md") {
 
 export const managerName = (entry) => `${entry.player_first_name} ${entry.player_last_name}`.trim();
 
+/** Holdnavn, der fører til holdets side. */
+export const teamLink = (entry) =>
+  entry ? `<a class="team-link" href="#/hold/${entry.id}">${esc(entry.entry_name)}</a>` : "?";
+
+/**
+ * Samme, men til steder hvor hele kortet allerede er et link (fx et kampkort).
+ * Et link må ikke ligge inde i et andet, så her klares klikket i main.js.
+ */
+export const teamLinkInCard = (entry) =>
+  entry ? `<span class="team-link" data-team="${entry.id}">${esc(entry.entry_name)}</span>` : "?";
+
 export function playerPhoto(player) {
   if (!player) return `<span class="photo" data-initials="?"></span>`;
   // Premier Leagues nye billedmappe har de opdaterede trøjer, men ikke alle spillere.

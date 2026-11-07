@@ -15,6 +15,7 @@ const routes = {
   tabel: () => views.tableView(),
   statistik: () => views.statsView(),
   aktivitet: () => views.activityView(),
+  hold: (id) => views.teamView(id), // har ingen fane, man kommer hertil via holdnavne
 };
 
 function parseHash() {
@@ -48,6 +49,14 @@ api
     document.title = `${d.league.name} · FPL Draft`;
   })
   .catch(() => {});
+
+// Klik på et holdnavn inde i et kampkort -> holdets side i stedet for kampen
+app.addEventListener("click", (e) => {
+  const team = e.target.closest("[data-team]");
+  if (!team) return;
+  e.preventDefault();
+  location.hash = `#/hold/${team.dataset.team}`;
+});
 
 // Klik på en spiller -> pop-up med detaljer
 const dialog = document.getElementById("player-dialog");

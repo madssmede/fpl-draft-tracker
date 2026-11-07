@@ -57,6 +57,42 @@ test("tidligere runder: delt højeste score giver flere hold", () => {
   assert.deepEqual(round.topIds, [entries[0].id, entries[3].id]);
 });
 
+test("holdside: resultater og nøgletal for Up the Spurs", () => {
+  const spurs = details.league_entries.find((e) => e.entry_name === "Up the Spurs");
+  const kjoge = details.league_entries.find((e) => e.entry_name === "Kjøge United");
+  const profile = calc.teamProfile(details, spurs.id);
+
+  assert.equal(profile.standing.rank, 1);
+  assert.deepEqual(profile.history.map((h) => h.event), [9, 8, 7, 6, 5, 4, 3, 2, 1]);
+  assert.deepEqual(profile.history[0], { event: 9, opponentId: kjoge.id, own: 52, other: 50, res: "V" });
+  assert.equal(profile.average, 497 / 9);
+  assert.deepEqual([profile.best.own, profile.best.event], [71, 4]);
+  const lowest = Math.min(...profile.history.map((h) => h.own));
+  assert.equal(profile.worst.own, lowest);
+});
+
+test("holdside: ukendt hold og hold uden spillede kampe", () => {
+  assert.equal(calc.teamProfile(details, 123), null);
+  const noGames = { ...details, matches: [] };
+  const profile = calc.teamProfile(noGames, details.league_entries[0].id);
+  assert.deepEqual(profile.history, []);
+  assert.deepEqual([profile.average, profile.best, profile.worst], [null, null, null]);
+});
+
+test("holdside: trup efter position med flest point øverst", () => {
+  const mk = (id, element_type, total_points) => [id, { id, element_type, total_points }];
+  const squadPlayers = new Map([mk(1, 1, 30), mk(2, 3, 10), mk(3, 3, 50), mk(4, 4, 20)]);
+  const status = [
+    { element: 1, owner: 111 },
+    { element: 2, owner: 111 },
+    { element: 3, owner: 111 },
+    { element: 4, owner: 222 }, // andet hold
+    { element: 99, owner: 111 }, // findes ikke i spillerlisten
+  ];
+  const groups = calc.squadByPosition(status, 111, squadPlayers);
+  assert.deepEqual(groups.map((g) => [g.type, g.players.map((p) => p.id)]), [[1, [1]], [2, []], [3, [3, 2]], [4, []]]);
+});
+
 // --- Up the Spurs, runde 9 (rigtige data) ---------------------------------
 const P = (id, web_name, element_type, team) => [id, { id, web_name, element_type, team, code: 0 }];
 const players = new Map([

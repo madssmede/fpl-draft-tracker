@@ -29,6 +29,7 @@ export const api = {
   details: () => get("league/details"),
   transactions: () => get("league/transactions"),
   trades: () => get("league/trades"),
+  elementStatus: () => get("league/element-status"),
   live: (gw) => get(`event/${gw}/live`),
   picks: (entryId, gw) => get(`entry/${entryId}/event/${gw}`),
 };
