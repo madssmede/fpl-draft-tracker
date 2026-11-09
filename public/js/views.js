@@ -14,6 +14,21 @@ export async function currentEvent() {
   return game.current_event || 1;
 }
 
+/**
+ * Runden, Kampe-fanen viser øverst. En afsluttet runde bliver stående dagen ud
+ * (se calc.featuredEvent), og derefter rykker næste runde op.
+ */
+export async function featuredRound(details) {
+  const current = await currentEvent();
+  const lastEvent = Math.max(...details.matches.map((m) => m.event));
+  const matches = calc.matchesForEvent(details, current);
+  const finished = matches.length > 0 && matches.every((m) => m.finished);
+  if (!finished) return current;
+  const live = await api.live(current).catch(() => null);
+  const kickoffs = (live?.fixtures ?? []).map((f) => f.kickoff_time).filter(Boolean).sort();
+  return calc.featuredEvent({ current, finished, lastKickoff: kickoffs.at(-1) ?? null, lastEvent });
+}
+
 function eventState(matches) {
   if (matches.length && matches.every((m) => m.finished)) return "done";
   if (matches.some((m) => m.started)) return "live";
@@ -37,11 +52,10 @@ async function liveLineups(details, gw, idx) {
 // Kampe
 // ---------------------------------------------------------------------------
 
-export async function matchesView(gwParam) {
-  const [details, idx, current] = await Promise.all([api.details(), playerIndex(), currentEvent()]);
+export async function matchesView() {
+  const [details, idx] = await Promise.all([api.details(), playerIndex()]);
   const entries = calc.entryMap(details);
-  const lastEvent = Math.max(...details.matches.map((m) => m.event));
-  const gw = Math.min(Math.max(Number(gwParam) || current, 1), lastEvent);
+  const gw = await featuredRound(details);
   const matches = calc.matchesForEvent(details, gw);
   const state = eventState(matches);
   const event = idx.events.get(gw);
@@ -94,14 +108,64 @@ export async function matchesView(gwParam) {
 
   return `
     <section class="gw-header">
-      <a class="gw-arrow ${gw <= 1 ? "disabled" : ""}" href="#/kampe/${gw - 1}" aria-label="Forrige runde">‹</a>
-      <div><h2>Runde ${gw}</h2><p class="muted">${subtitle}</p></div>
-      <a class="gw-arrow ${gw >= lastEvent ? "disabled" : ""}" href="#/kampe/${gw + 1}" aria-label="Næste runde">›</a>
+      <h2>Runde ${gw}</h2><p class="muted">${subtitle}</p>
     </section>
-    ${gw !== current ? `<p class="center"><a class="link" href="#/kampe/${current}">Gå til aktuel runde (${current})</a></p>` : ""}
     <div class="stack">${cards}</div>
     ${state === "live" && [...lineups.values()].some((l) => l.provisional) ? `<p class="note">Point er foreløbige og inkluderer forventede automatiske udskiftninger.</p>` : ""}
+    ${state === "done" ? `<p class="note">Runden er afsluttet og kan altid ses under <a class="link" href="#/runder">Runder</a>.</p>` : ""}
+    ${upcomingRoundsSection(details, idx, entries, gw)}
   `;
+}
+
+/**
+ * Kommende runder under den aktuelle runde: ét kort pr. runde med deadline og kampe,
+ * og et mærke før den runde, hvor der er ny draft.
+ */
+function upcomingRoundsSection(details, idx, entries, afterEvent) {
+  const rounds = calc.upcomingRounds(details, afterEvent);
+  if (!rounds.length) return "";
+  const draft = calc.nextDraft(details.league);
+
+  const cards = rounds
+    .map((r) => {
+      const deadline = idx.events.get(r.event)?.deadline_time;
+      const banner =
+        draft && draft.event === r.event
+          ? `<div class="card draft-banner">
+              <span class="draft-icon" aria-hidden="true">🔄</span>
+              <div><strong>Ny draft · ${fmtDate(draft.time)}</strong>
+              <small>Inden runde ${draft.event}. ${draft.orderMethod === "rank" ? "Rækkefølgen sættes efter placering i tabellen." : "Rækkefølgen trækkes lod om."}</small></div>
+            </div>`
+          : "";
+      return `${banner}
+        <section class="card round-card">
+          <div class="round-head">
+            <h2>Runde ${r.event}</h2>
+            ${deadline ? `<span class="muted">Deadline ${fmtDate(deadline)}</span>` : ""}
+          </div>
+          <div>${r.matches.map((m) => resultRow(m, r.event, entries, true)).join("")}</div>
+        </section>`;
+    })
+    .join("");
+
+  return `
+    <h2 class="section-title">Kommende runder</h2>
+    <div class="stack">${cards}</div>`;
+}
+
+/** Én kamp som en kompakt række. Kommende kampe viser "vs" i stedet for resultat. */
+function resultRow(m, event, entries, upcoming = false) {
+  const a = entries.get(m.league_entry_1);
+  const b = entries.get(m.league_entry_2);
+  if (!a || !b) return ""; // fri runde
+  const sa = m.league_entry_1_points;
+  const sb = m.league_entry_2_points;
+  return `
+    <a class="result-row" href="#/kamp/${event}/${a.id}-${b.id}">
+      <span class="result-team home ${!upcoming && sb > sa ? "lost" : ""}"><strong>${teamLinkInCard(a)}</strong>${crest(a, "sm")}</span>
+      ${upcoming ? `<span class="result-score vs">vs</span>` : `<span class="result-score">${sa}<i>–</i>${sb}</span>`}
+      <span class="result-team ${!upcoming && sa > sb ? "lost" : ""}">${crest(b, "sm")}<strong>${teamLinkInCard(b)}</strong></span>
+    </a>`;
 }
 
 // ---------------------------------------------------------------------------
@@ -114,20 +178,6 @@ export async function roundsView() {
   const rounds = calc.pastRounds(details);
   if (!rounds.length) return `<div class="card">Resultaterne dukker op efter første runde.</div>`;
 
-  const resultRow = (m, event) => {
-    const a = entries.get(m.league_entry_1);
-    const b = entries.get(m.league_entry_2);
-    if (!a || !b) return ""; // fri runde
-    const sa = m.league_entry_1_points;
-    const sb = m.league_entry_2_points;
-    return `
-      <a class="result-row" href="#/kamp/${event}/${a.id}-${b.id}">
-        <span class="result-team home ${sb > sa ? "lost" : ""}"><strong>${teamLinkInCard(a)}</strong>${crest(a, "sm")}</span>
-        <span class="result-score">${sa}<i>–</i>${sb}</span>
-        <span class="result-team ${sa > sb ? "lost" : ""}">${crest(b, "sm")}<strong>${teamLinkInCard(b)}</strong></span>
-      </a>`;
-  };
-
   const cards = rounds
     .map((r) => {
       const started = idx.events.get(r.event)?.deadline_time;
@@ -138,7 +188,7 @@ export async function roundsView() {
             <h2>Runde ${r.event}</h2>
             ${started ? `<span class="muted">${fmtShortDate(started)}</span>` : ""}
           </div>
-          <div>${r.matches.map((m) => resultRow(m, r.event)).join("")}</div>
+          <div>${r.matches.map((m) => resultRow(m, r.event, entries)).join("")}</div>
           <p class="round-top muted">Højeste score: <strong>${r.topPoints}</strong> · ${topNames}</p>
         </section>`;
     })
@@ -387,7 +437,9 @@ export async function matchView(gw, pair) {
   );
   if (!a || !b || !match) return `<div class="card">Kampen blev ikke fundet.</div>`;
 
-  const back = `<a class="back" href="#/kampe/${gw}">‹ Runde ${gw}</a>`;
+  // Tilbage til den fane, hvor runden står: Runder for afsluttede runder, ellers Kampe.
+  const onRoundsTab = gw < (await featuredRound(details));
+  const back = onRoundsTab ? `<a class="back" href="#/runder">‹ Runder</a>` : `<a class="back" href="#/kampe">‹ Kampe</a>`;
 
   if (!match.started) {
     return `${back}

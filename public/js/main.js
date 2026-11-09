@@ -1,4 +1,4 @@
-// Starter siden: læser adressen (#/kampe/10 osv.), viser den rigtige side
+// Starter siden: læser adressen (#/kampe, #/kamp/10/... osv.), viser den rigtige side
 // og opdaterer automatisk hvert minut, mens en runde er i gang.
 
 import { api, forgetLiveData } from "./api.js";
@@ -9,7 +9,7 @@ const app = document.getElementById("app");
 const REFRESH_MS = 60_000;
 
 const routes = {
-  kampe: (gw) => views.matchesView(gw),
+  kampe: () => views.matchesView(), // gamle adresser som #/kampe/10 viser bare Kampe
   kamp: (gw, pair) => views.matchView(gw, pair),
   runder: () => views.roundsView(),
   tabel: () => views.tableView(),

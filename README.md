@@ -2,7 +2,7 @@
 
 En FotMob-agtig side til vores FPL Draft-liga (SPORT 24 INDKØB).
 
-- **Kampe:** rundens H2H-kampe med livepoint, der opdateres hvert minut
+- **Kampe:** rundens H2H-kampe med livepoint, der opdateres hvert minut, og alle kommende runder med deadline og tidspunkt for ny draft
 - **Kampside:** begge holds opstilling på en bane, point pr. spiller og indbyrdes opgør
 - **Runder:** alle afsluttede runder med resultater og rundens højeste score
 - **Tabel:** stilling, form og pile for op- og nedrykning

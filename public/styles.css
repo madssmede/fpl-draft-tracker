@@ -98,18 +98,10 @@ main { padding-top: 16px; padding-bottom: 48px; }
 .crest-lg { --size: 56px; }
 .badge { width: 16px; height: 16px; vertical-align: -3px; }
 
-/* ---------- Runde-vælger ---------- */
-.gw-header {
-  display: grid; grid-template-columns: 44px 1fr 44px; align-items: center;
-  text-align: center; margin-bottom: 14px;
-}
+/* ---------- Rundens overskrift på Kampe ---------- */
+.gw-header { text-align: center; margin-bottom: 14px; }
 .gw-header h2 { font-size: 20px; font-weight: 800; }
 .gw-header p { margin: 2px 0 0; font-size: 13px; }
-.gw-arrow {
-  display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%;
-  background: var(--card); border: 1px solid var(--line); font-size: 24px; line-height: 1;
-}
-.gw-arrow.disabled { opacity: 0.3; pointer-events: none; }
 
 .live-dot {
   display: inline-block; width: 8px; height: 8px; border-radius: 50%;
@@ -160,6 +152,12 @@ main { padding-top: 16px; padding-bottom: 48px; }
   background: var(--card-2); font-weight: 800; font-variant-numeric: tabular-nums;
 }
 .result-score i { margin: 0 4px; font-style: normal; font-weight: 500; color: var(--muted); }
+.result-score.vs { font-size: 13px; font-weight: 600; color: var(--muted); }
+.section-title { margin: 28px 4px 10px; font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.draft-banner { display: flex; align-items: center; gap: 12px; border-color: var(--accent); background: var(--accent-soft); }
+.draft-banner strong { display: block; font-size: 15px; }
+.draft-banner small { display: block; color: var(--muted); font-size: 13px; margin-top: 2px; }
+.draft-icon { font-size: 22px; }
 .round-top { margin: 8px 0 0; padding-top: 10px; border-top: 1px solid var(--line); font-size: 13px; }
 .round-top strong { color: var(--text); }
 

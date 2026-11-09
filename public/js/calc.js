@@ -226,6 +226,55 @@ export function pastRounds(details) {
     });
 }
 
+/** Dato i dansk tid som "2026-11-08", så to tidspunkter kan sammenlignes på dag. */
+function copenhagenDay(date) {
+  return new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Copenhagen" }).format(new Date(date));
+}
+
+/** Dagen efter, fx "2026-11-08" -> "2026-11-09". */
+function nextDay(day) {
+  const d = new Date(`${day}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + 1);
+  return d.toISOString().slice(0, 10);
+}
+
+/**
+ * Hvilken runde Kampe-fanen skal vise øverst.
+ * Den aktuelle runde bliver stående, til den er afgjort af FPL OG dagen efter rundens
+ * sidste Premier League-kamp er omme (dansk tid). Derefter vises næste runde.
+ * FPL oplyser ikke, hvornår en runde blev afgjort. De afgør den som regel samme aften
+ * eller dagen efter sidste kamp, så "dagen efter" dækker afgørelsesdagen.
+ *
+ * current: game.current_event · finished: er alle ligaens kampe i runden afgjort?
+ * lastKickoff: tidspunkt for rundens sidste kamp (eller null) · lastEvent: sæsonens sidste runde
+ */
+export function featuredEvent({ current, finished, lastKickoff, now = new Date(), lastEvent = 38 }) {
+  if (!finished || current >= lastEvent) return current;
+  if (lastKickoff && copenhagenDay(now) <= nextDay(copenhagenDay(lastKickoff))) return current;
+  return current + 1;
+}
+
+/** Runder efter afterEvent, hvor ingen kamp er færdig endnu, i rækkefølge: [{ event, matches }]. */
+export function upcomingRounds(details, afterEvent) {
+  const events = [...new Set(details.matches.map((m) => m.event))]
+    .filter((event) => event > afterEvent)
+    .sort((a, b) => a - b);
+  return events
+    .map((event) => ({ event, matches: matchesForEvent(details, event) }))
+    .filter((r) => r.matches.every((m) => !m.finished));
+}
+
+/**
+ * Ligaens næste draft, der ikke er holdt endnu: { event, time, orderMethod } eller null.
+ * FPL gemmer alle ligaens drafts i league.drafts (den første er sæsonstarten).
+ */
+export function nextDraft(league) {
+  const draft = (league?.drafts ?? [])
+    .filter((d) => !d.draft_completed && !d.draft_started && d.draft_dt)
+    .sort((a, b) => new Date(a.draft_dt) - new Date(b.draft_dt))[0];
+  return draft ? { event: draft.event, time: draft.draft_dt, orderMethod: draft.order_method } : null;
+}
+
 /**
  * "Heldtabellen": hvad var resultatet, hvis hvert hold havde mødt alle de
  * andre hver eneste runde? Viser, hvem der har haft medvind og modvind.

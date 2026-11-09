@@ -175,6 +175,58 @@ test("point pr. ting fra FPL's explain, også ved dobbeltrunde", () => {
   assert.deepEqual(calc.pointsByStat(null, 7), {});
 });
 
+test("kommende runder: kun runder efter den aktuelle, uden færdige kampe", () => {
+  // Testdataene har kampe til og med runde 11, og runde 1-9 er spillet.
+  const rounds = calc.upcomingRounds(details, 9);
+  assert.deepEqual(rounds.map((r) => r.event), [10, 11]);
+  assert.ok(rounds.every((r) => r.matches.length === 3 && r.matches.every((m) => !m.finished)));
+  assert.deepEqual(calc.upcomingRounds(details, 10).map((r) => r.event), [11]);
+  assert.deepEqual(calc.upcomingRounds(details, 11), []);
+  assert.deepEqual(calc.upcomingRounds(details, 5).map((r) => r.event), [10, 11]); // runde 6-9 er spillet
+});
+
+test("Kampe-fanen: runden bliver stående til midnat dagen efter sidste kamp", () => {
+  // Runde 10's sidste kamp: søndag 8. nov. kl. 17.30 dansk tid -> rykker ved midnat mellem mandag og tirsdag
+  const base = { current: 10, finished: true, lastKickoff: "2026-11-08T16:30:00Z", lastEvent: 38 };
+  assert.equal(calc.featuredEvent({ ...base, now: new Date("2026-11-08T20:00:00Z") }), 10); // søndag aften
+  assert.equal(calc.featuredEvent({ ...base, now: new Date("2026-11-09T12:00:00Z") }), 10); // mandag
+  assert.equal(calc.featuredEvent({ ...base, now: new Date("2026-11-09T22:59:00Z") }), 10); // mandag 23.59 dansk tid
+  assert.equal(calc.featuredEvent({ ...base, now: new Date("2026-11-09T23:00:00Z") }), 11); // midnat dansk tid
+  assert.equal(calc.featuredEvent({ ...base, now: new Date("2026-11-12T12:00:00Z") }), 11);
+
+  // Ikke afgjort af FPL endnu: bliver stående, også flere dage efter
+  assert.equal(calc.featuredEvent({ ...base, finished: false, now: new Date("2026-11-12T12:00:00Z") }), 10);
+  // Sen kamp kl. 23.30 dansk tid: dagen efter er stadig mandag
+  const late = { ...base, lastKickoff: "2026-11-08T22:30:00Z" };
+  assert.equal(calc.featuredEvent({ ...late, now: new Date("2026-11-09T22:59:00Z") }), 10);
+  assert.equal(calc.featuredEvent({ ...late, now: new Date("2026-11-09T23:00:00Z") }), 11);
+  // Månedsskifte: sidste kamp 30. november -> rykker ved midnat efter 1. december
+  const monthEnd = { ...base, lastKickoff: "2026-11-30T20:00:00Z" };
+  assert.equal(calc.featuredEvent({ ...monthEnd, now: new Date("2026-12-01T22:59:00Z") }), 10);
+  assert.equal(calc.featuredEvent({ ...monthEnd, now: new Date("2026-12-01T23:00:00Z") }), 11);
+  // Sommertid: kamp 20. april kl. 21.00 dansk tid, midnat efter 21. april er 22.00 UTC
+  const summer = { ...base, lastKickoff: "2027-04-20T19:00:00Z" };
+  assert.equal(calc.featuredEvent({ ...summer, now: new Date("2027-04-21T21:59:00Z") }), 10);
+  assert.equal(calc.featuredEvent({ ...summer, now: new Date("2027-04-21T22:00:00Z") }), 11);
+  // Sidste runde i sæsonen bliver stående
+  assert.equal(calc.featuredEvent({ ...base, current: 38, now: new Date("2027-06-01T12:00:00Z") }), 38);
+  // Uden kamptidspunkt rykkes videre, når runden er afgjort
+  assert.equal(calc.featuredEvent({ ...base, lastKickoff: null, now: new Date("2026-11-08T20:00:00Z") }), 11);
+});
+
+test("næste draft: den første, der ikke er holdt endnu", () => {
+  const league = {
+    drafts: [
+      { event: 1, draft_dt: "2026-08-20T12:45:00Z", draft_started: true, draft_completed: "2026-08-20T13:04:26Z", order_method: "random" },
+      { event: 21, draft_dt: "2027-01-14T13:45:00Z", draft_started: false, draft_completed: null, order_method: "rank" },
+    ],
+  };
+  assert.deepEqual(calc.nextDraft(league), { event: 21, time: "2027-01-14T13:45:00Z", orderMethod: "rank" });
+  assert.equal(calc.nextDraft({ drafts: [league.drafts[0]] }), null);
+  assert.equal(calc.nextDraft({}), null);
+  assert.equal(calc.nextDraft(undefined), null);
+});
+
 // --- Up the Spurs, runde 9 (rigtige data) ---------------------------------
 const P = (id, web_name, element_type, team) => [id, { id, web_name, element_type, team, code: 0 }];
 const players = new Map([

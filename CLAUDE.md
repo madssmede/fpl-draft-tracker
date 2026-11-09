@@ -29,7 +29,7 @@ Miljøvariabler: `PORT` (sættes af Render), `LEAGUE_ID` (standard 67616), `MOCK
 | `public/index.html` | Skelet: top, faner, `<dialog>` til spillerdetaljer |
 | `public/favicon.svg` | Logoet (også i toppen af siden): "S24" og "FPL" på hvid baggrund, skrå bogstaver tegnet som figurer fra Arial Black. Rød = Sport 24's røde `#D71149` (målt i deres logo), mørk = `#161616`. |
 | `public/styles.css` | Alt design. Mørkt tema som standard, lyst via `prefers-color-scheme`. Farver som CSS-variabler i `:root`. |
-| `public/js/main.js` | Hash-router (`#/kampe/10`, `#/kamp/10/<id>-<id>`, `#/runder`, `#/hold/<id>`, `#/tabel`, `#/statistik`, `#/spillere/<sortering>/<position>/<hold>`, `#/aktivitet`), auto-opdatering hvert 60. sekund mens runden er live |
+| `public/js/main.js` | Hash-router (`#/kampe`, `#/kamp/10/<id>-<id>`, `#/runder`, `#/hold/<id>`, `#/tabel`, `#/statistik`, `#/spillere/<sortering>/<position>/<hold>`, `#/aktivitet`), auto-opdatering hvert 60. sekund mens runden er live |
 | `public/js/views.js` | Én funktion pr. side, returnerer HTML-strenge |
 | `public/js/calc.js` | Rene beregninger uden DOM eller fetch: tabel, heldtabel, rekorder, livepoint, automatiske udskiftninger |
 | `public/js/api.js` | Kald til `/api/fpl/...` med memo, `playerIndex()` med opslagstabeller |
@@ -41,6 +41,7 @@ Miljøvariabler: `PORT` (sættes af Render), `LEAGUE_ID` (standard 67616), `MOCK
 Base: `https://draft.premierleague.com/api/`. Ingen login, **ingen CORS-header**, derfor proxyen. Kald fra sandboxed miljøer kan være blokeret; ejerens browser kan bruges til at undersøge svar.
 
 - `league/{id}/details`: `league`, `league_entries`, `matches`, `standings`.
+  - `league.drafts[]` har alle ligaens drafts (`event`, `draft_dt`, `draft_started`, `draft_completed`, `order_method`). `calc.nextDraft` finder den næste, som vises før sin runde under "Kommende runder" på Kampe.
   - Kampe refererer til `league_entries[].id` (fx 360413), **ikke** `entry_id` (fx 356446). `entry_id` bruges til `entry/{entry_id}/event/{gw}`.
   - Kampenes point opdateres **kun når runden er afgjort**. Under runden står de 0–0, så livepoint beregnes selv fra opstilling og live-data.
   - `standings[].matches_played` er forkert (viser 38), så tabellen beregnes selv i `calc.computeStandings`.
@@ -60,6 +61,10 @@ Billeder (virker fra browseren):
 ## Livepoint og automatiske udskiftninger
 
 `calc.buildLineup`: Hvis `subs` er udfyldt (runden er afgjort), bruges FPL's opstilling. Ellers laver `provisionalAutoSubs` foreløbige udskiftninger. En startspiller med 0 minutter, hvis kamp er færdig, skiftes ud med den første bænkspiller med minutter, hvis formationen holder (1 GK, 3–5 DEF, 2–5 MID, 1–3 FWD). Målmand kan kun erstattes af målmand. Testet mod runde 9, hvor resultatet rammer FPL's 52 point.
+
+## Kampe og Runder
+
+Kampe viser én runde øverst (ingen pile) og alle kommende runder nedenunder. `calc.featuredEvent`: en afsluttet runde bliver stående, til FPL har afgjort den **og** dagen *efter* rundens sidste Premier League-kamp er omme i dansk tid (ejerens ønske: runden skal stå resten af den dag, FPL afgør den). FPL oplyser ikke, hvornår en runde blev afgjort (heller ikke `pl/event-status`), og de afgør den som regel samme aften eller dagen efter sidste kamp. Derefter rykker næste runde op, og den afsluttede ses under Runder. Kampsidens tilbage-link peger på den fane, hvor runden står.
 
 ## Bedste opstilling (Spillere-fanen)
 
