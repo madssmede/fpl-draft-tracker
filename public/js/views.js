@@ -706,22 +706,44 @@ export async function statsView() {
 // Aktivitet: waivers, frie spillere og byttehandler
 // ---------------------------------------------------------------------------
 
-export async function activityView() {
+/** teamParam: et holds id fra adressen (#/aktivitet/<id>), eller tomt for alle hold. */
+export async function activityView(teamParam) {
   const [details, idx, tx, tr] = await Promise.all([api.details(), playerIndex(), api.transactions(), api.trades()]);
   const byEntryId = new Map(details.league_entries.map((e) => [e.entry_id, e]));
+  const team = calc.entryMap(details).get(Number(teamParam)) ?? null;
   const pName = (id) => esc(idx.players.get(id)?.web_name ?? "Ukendt");
   const pClub = (id) => idx.clubs.get(idx.players.get(id)?.team);
 
+  const transactions = tx.transactions ?? [];
+  const outcomes = calc.waiverOutcomes(transactions);
+  const reasonText = (o, t) =>
+    o.reason === "taken"
+      ? `${teamLink(byEntryId.get(o.byEntry))} fik ${pName(t.element_in)} først`
+      : o.reason === "out"
+        ? `${pName(t.element_out)} var allerede skiftet ud`
+        : `${pName(t.element_in)} var ikke ledig`;
+
   const items = [];
-  for (const t of tx.transactions ?? []) {
-    if (t.result !== "a") continue; // kun gennemførte
+  for (const t of transactions) {
+    // Waivers: både godkendte og afviste. Frie spillere: kun gennemførte.
+    const o = outcomes.get(t.id);
+    if (!o && t.result !== "a") continue;
+    const rejected = o && !o.accepted;
+    const status = o ? (o.accepted ? `<span class="tag tag-ok">✓ Godkendt</span>` : `<span class="tag tag-no">✕ Afvist</span>`) : "";
+    const meta = `<span class="muted act-meta">${t.kind === "w" && t.priority ? `Ønske nr. ${t.priority} · ` : ""}${fmtShortDate(t.added)}</span>`;
     items.push({
       time: t.added,
       event: t.event,
+      entries: [t.entry],
+      isWaiver: t.kind === "w",
+      priority: t.priority ?? 0,
+      index: t.index ?? 0,
+      rejected,
       html: `
         <div class="act-head">${crest(byEntryId.get(t.entry) ?? { id: 0, short_name: "?" }, "sm")}<strong>${teamLink(byEntryId.get(t.entry))}</strong>
-          <span class="tag">${t.kind === "w" ? "Waiver" : "Fri spiller"}</span><span class="muted act-time">${fmtShortDate(t.added)}</span></div>
-        <div class="swap"><span class="in">↑ ${clubBadge(pClub(t.element_in))} ${pName(t.element_in)}</span><span class="out">↓ ${clubBadge(pClub(t.element_out))} ${pName(t.element_out)}</span></div>`,
+          <span class="tag">${t.kind === "w" ? "Waiver" : "Fri spiller"}</span>${status}</div>
+        <div class="swap"><span class="in">↑ ${clubBadge(pClub(t.element_in))} ${pName(t.element_in)}</span><span class="out">↓ ${clubBadge(pClub(t.element_out))} ${pName(t.element_out)}</span>${meta}</div>
+        ${rejected ? `<p class="act-reason">Afvist: ${reasonText(o, t)}</p>` : ""}`,
     });
   }
   for (const t of tr.trades ?? []) {
@@ -734,21 +756,44 @@ export async function activityView() {
     items.push({
       time: t.response_time ?? t.offer_time,
       event: t.event,
+      entries: [t.offered_entry, t.received_entry], // vises for begge hold i handlen
       html: `
         <div class="act-head"><strong>${teamLink(from)} ⇄ ${teamLink(to)}</strong>
           <span class="tag tag-trade">Byttehandel</span><span class="muted act-time">${fmtShortDate(t.response_time ?? t.offer_time)}</span></div>${lines}`,
     });
   }
-  items.sort((a, b) => b.event - a.event || new Date(b.time) - new Date(a.time));
-  if (!items.length) return `<div class="card">Ingen transfers endnu.</div>`;
+  // Nyeste runde først. Inden for runden: waivers efter ønske nr. (alle nr. 1 først),
+  // og ved samme ønske nr. i den rækkefølge FPL behandlede dem. Derefter frie spillere og byttehandler, nyeste først.
+  items.sort(
+    (a, b) =>
+      b.event - a.event ||
+      Number(!!b.isWaiver) - Number(!!a.isWaiver) ||
+      (a.isWaiver ? a.priority - b.priority || a.index - b.index : new Date(b.time) - new Date(a.time))
+  );
+  // Holdfilter: rullemenu, hvor hvert valg er en adresse (håndteres af data-nav i main.js)
+  const options = [`<option value="#/aktivitet">Alle hold</option>`]
+    .concat(
+      details.league_entries.map(
+        (e) => `<option value="#/aktivitet/${e.id}" ${e.id === team?.id ? "selected" : ""}>${esc(e.entry_name)}</option>`
+      )
+    )
+    .join("");
+  const filter = `
+    <section class="card filters">
+      <span class="muted filter-label">Vis transfers for</span>
+      <select class="team-select" data-nav aria-label="Vælg hold">${options}</select>
+    </section>`;
+
+  const shown = team ? items.filter((i) => i.entries.includes(team.entry_id)) : items;
+  if (!shown.length) return `${filter}<div class="card">${team ? `${esc(team.entry_name)} har ingen transfers endnu.` : "Ingen transfers endnu."}</div>`;
 
   let lastEvent = null;
-  const out = items
+  const out = shown
     .map((i) => {
       const header = i.event !== lastEvent ? `<h3 class="group-title">Runde ${i.event}</h3>` : "";
       lastEvent = i.event;
-      return `${header}<div class="card activity">${i.html}</div>`;
+      return `${header}<div class="card activity ${i.rejected ? "rejected" : ""}">${i.html}</div>`;
     })
     .join("");
-  return `<div class="stack">${out}</div>`;
+  return `${filter}<div class="stack">${out}</div>`;
 }

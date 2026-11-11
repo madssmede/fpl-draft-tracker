@@ -179,6 +179,30 @@ export function bestLineup(players, rules = BEST_LINEUP_RULES) {
   return best;
 }
 
+/**
+ * Hvordan hver waiver gik: Map(transaktions-id -> { accepted, reason, byEntry }).
+ * FPL's resultater: "a" = gennemført, "di" og "do" = afvist. Vi finder selv årsagen:
+ *   "taken"       en anden manager fik spilleren i samme runde (byEntry = deres entry_id)
+ *   "out"         spilleren, der skulle ud, var allerede skiftet ud af en af ens egne waivers
+ *   "unavailable" spilleren var ikke ledig af en anden grund
+ */
+export function waiverOutcomes(transactions) {
+  const accepted = transactions.filter((t) => t.result === "a");
+  const out = new Map();
+  for (const t of transactions) {
+    if (t.kind !== "w") continue;
+    if (t.result === "a") {
+      out.set(t.id, { accepted: true, reason: null, byEntry: null });
+      continue;
+    }
+    const takenBy = accepted.find((a) => a.event === t.event && a.element_in === t.element_in && a.entry !== t.entry);
+    const outGone = accepted.some((a) => a.event === t.event && a.entry === t.entry && a.element_out === t.element_out);
+    const reason = takenBy ? "taken" : outGone || t.result === "do" ? "out" : "unavailable";
+    out.set(t.id, { accepted: false, reason, byEntry: takenBy?.entry ?? null });
+  }
+  return out;
+}
+
 /** Seneste færdige runde i ligaen (0 hvis ingen). */
 export function lastFinishedEvent(details) {
   return details.matches.filter((m) => m.finished).reduce((max, m) => Math.max(max, m.event), 0);

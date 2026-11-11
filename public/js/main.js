@@ -15,7 +15,7 @@ const routes = {
   tabel: () => views.tableView(),
   statistik: () => views.statsView(),
   spillere: (sort, position, team) => views.playersView(sort, position, team),
-  aktivitet: () => views.activityView(),
+  aktivitet: (team) => views.activityView(team),
   hold: (id) => views.teamView(id), // har ingen fane, man kommer hertil via holdnavne
 };
 

@@ -356,6 +356,14 @@ a.record[href]:hover { background: var(--card-2); }
 .swap { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 8px; font-size: 14px; }
 .swap .in { color: var(--win); font-weight: 600; }
 .swap .out { color: var(--loss); }
+.tag-ok { background: rgba(0, 196, 106, 0.16); color: var(--win); }
+.tag-no { background: rgba(239, 68, 68, 0.16); color: var(--loss); }
+.act-meta { margin-left: auto; font-size: 12px; white-space: nowrap; }
+.activity.rejected { border-color: rgba(239, 68, 68, 0.45); border-left: 4px solid var(--loss); }
+.activity.rejected .swap .in, .activity.rejected .swap .out { color: var(--muted); font-weight: 500; text-decoration: line-through; }
+.act-reason { margin: 8px 0 0; font-size: 13px; color: var(--loss); }
+.act-reason .team-link { color: var(--text); font-weight: 600; }
+.filter-label { font-size: 13px; font-weight: 600; }
 
 /* ---------- Pop-up ---------- */
 .sheet {

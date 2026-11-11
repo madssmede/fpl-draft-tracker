@@ -8,7 +8,7 @@ En FotMob-agtig side til vores FPL Draft-liga (SPORT 24 INDKØB).
 - **Tabel:** stilling, form og pile for op- og nedrykning
 - **Statistik:** heldtabel (alle mod alle), rekorder og point pr. runde
 - **Spillere:** alle Premier League-spillere med sæsontal og ejer, filter på position, hold og frie spillere, samt den bedst mulige startopstilling, sortering og pop-up med alle tal
-- **Transfers:** waivers, frie spillere og byttehandler
+- **Transfers:** alle waivers (godkendte og afviste med årsag), frie spillere og byttehandler
 - **Holdside:** nøgletal, trup og resultater. Åbnes ved at trykke på et holdnavn
 
 Siden er skrevet i almindelig HTML, CSS og JavaScript. Serveren er én fil uden eksterne pakker.

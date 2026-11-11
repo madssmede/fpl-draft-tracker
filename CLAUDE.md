@@ -29,7 +29,7 @@ Miljøvariabler: `PORT` (sættes af Render), `LEAGUE_ID` (standard 67616), `MOCK
 | `public/index.html` | Skelet: top, faner, `<dialog>` til spillerdetaljer |
 | `public/favicon.svg` | Logoet (også i toppen af siden): "S24" og "FPL" på hvid baggrund, skrå bogstaver tegnet som figurer fra Arial Black. Rød = Sport 24's røde `#D71149` (målt i deres logo), mørk = `#161616`. |
 | `public/styles.css` | Alt design. Mørkt tema som standard, lyst via `prefers-color-scheme`. Farver som CSS-variabler i `:root`. |
-| `public/js/main.js` | Hash-router (`#/kampe`, `#/kamp/10/<id>-<id>`, `#/runder`, `#/hold/<id>`, `#/tabel`, `#/statistik`, `#/spillere/<sortering>/<position>/<hold>`, `#/aktivitet`), auto-opdatering hvert 60. sekund mens runden er live |
+| `public/js/main.js` | Hash-router (`#/kampe`, `#/kamp/10/<id>-<id>`, `#/runder`, `#/hold/<id>`, `#/tabel`, `#/statistik`, `#/spillere/<sortering>/<position>/<hold>`, `#/aktivitet/<hold>`), auto-opdatering hvert 60. sekund mens runden er live |
 | `public/js/views.js` | Én funktion pr. side, returnerer HTML-strenge |
 | `public/js/calc.js` | Rene beregninger uden DOM eller fetch: tabel, heldtabel, rekorder, livepoint, automatiske udskiftninger |
 | `public/js/api.js` | Kald til `/api/fpl/...` med memo, `playerIndex()` med opslagstabeller |
@@ -49,7 +49,7 @@ Base: `https://draft.premierleague.com/api/`. Ingen login, **ingen CORS-header**
 - `game`: `current_event`, `current_event_finished`.
 - `event/{gw}/live`: `elements` er et **objekt med id som nøgle** → `{stats: {total_points, minutes, ...}, explain}`. `fixtures[]` har `team_h`, `team_a`, `started`, `finished`, `finished_provisional`.
 - `entry/{entry_id}/event/{gw}`: `picks[]` (`element`, `position` 1–15, 12–15 er bænk) og `subs[]`. `subs` udfyldes først, når runden er afgjort. Captain er slået fra i draft.
-- `draft/league/{id}/transactions`: `transactions[]` med `kind` (`w` waiver, `f` fri spiller), `result` (`a` gennemført), `element_in`, `element_out`, `entry` (= entry_id).
+- `draft/league/{id}/transactions`: `transactions[]` med `kind` (`w` waiver, `f` fri spiller), `result` (`a` gennemført, `di` og `do` afvist), `priority` (managerens ønske nr.), `index` (rækkefølgen FPL behandlede dem i), `element_in`, `element_out`, `entry` (= entry_id). Afvisninger forklares i `calc.waiverOutcomes` (verificeret runde 1-10): `di` er næsten altid, at en anden manager fik spilleren først. `do` er, at spilleren ud allerede var skiftet ud af en af ens egne waivers i samme runde. Transfers viser alle waivers, men kun gennemførte frie spillere.
 - `draft/league/{id}/trades`: `trades[]` med `state` (`p` gennemført), `offered_entry`, `received_entry`, `tradeitem_set[]`. Det hold, der tilbyder handlen, **modtager** `element_in` og **afgiver** `element_out`. Bekræftet mod holdenes opstillinger.
 - `league/{id}/element-status`: ejerskab pr. spiller. `owner` er holdets `entry_id` (bekræftet mod alle 6 trupper, runde 10). Bruges til truppen på holdsiden.
 - `draft/{id}/choices`: draftvalg. Bruges endnu ikke. Ligaen har en ny draft planlagt til runde 21 (14. januar 2027), hvor rækkefølgen sættes efter placering.

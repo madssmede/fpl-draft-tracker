@@ -227,6 +227,25 @@ test("næste draft: den første, der ikke er holdt endnu", () => {
   assert.equal(calc.nextDraft(undefined), null);
 });
 
+test("waivers: godkendt, afvist og hvorfor", () => {
+  const w = (id, entry, event, element_in, element_out, result, index) => ({ id, kind: "w", entry, event, element_in, element_out, result, index });
+  const tx = [
+    w(1, 111, 9, 45, 12, "a", 2), // 111 får spiller 45
+    w(2, 222, 9, 45, 30, "di", 4), // 222 ville også have 45
+    w(3, 111, 9, 70, 12, "do", 5), // 12 er allerede skiftet ud af waiver 1
+    w(4, 333, 9, 99, 31, "di", 6), // ingen andre fik 99
+    w(5, 222, 10, 45, 30, "di", 1), // anden runde: waiver 1 tæller ikke her
+    { id: 6, kind: "f", entry: 111, event: 9, element_in: 5, element_out: 6, result: "a" }, // fri spiller: ikke en waiver
+  ];
+  const o = calc.waiverOutcomes(tx);
+  assert.deepEqual(o.get(1), { accepted: true, reason: null, byEntry: null });
+  assert.deepEqual(o.get(2), { accepted: false, reason: "taken", byEntry: 111 });
+  assert.deepEqual(o.get(3), { accepted: false, reason: "out", byEntry: null });
+  assert.deepEqual(o.get(4), { accepted: false, reason: "unavailable", byEntry: null });
+  assert.deepEqual(o.get(5), { accepted: false, reason: "unavailable", byEntry: null });
+  assert.equal(o.has(6), false);
+});
+
 // --- Up the Spurs, runde 9 (rigtige data) ---------------------------------
 const P = (id, web_name, element_type, team) => [id, { id, web_name, element_type, team, code: 0 }];
 const players = new Map([
